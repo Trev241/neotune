@@ -24,7 +24,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hi, Trevis"
+                android:text="Hi, Trevis!"
                 android:layout_marginBottom="12sp"
                 android:textSize="48sp"/>
 
@@ -48,21 +48,9 @@
                     android:orientation="horizontal">
 
                     <include layout="@layout/song_card" />
-                    <Space
-                        android:layout_width="8sp"
-                        android:layout_height="wrap_content"/>
                     <include layout="@layout/song_card" />
-                    <Space
-                        android:layout_width="8sp"
-                        android:layout_height="wrap_content"/>
                     <include layout="@layout/song_card" />
-                    <Space
-                        android:layout_width="8sp"
-                        android:layout_height="wrap_content"/>
                     <include layout="@layout/song_card" />
-                    <Space
-                        android:layout_width="8sp"
-                        android:layout_height="wrap_content"/>
                     <include layout="@layout/song_card" />
                 </LinearLayout>
             </HorizontalScrollView>
@@ -85,29 +73,11 @@
                     android:orientation="vertical">
 
                     <include layout="@layout/song_card_long" />
-                    <Space
-                        android:layout_width="wrap_content"
-                        android:layout_height="11sp"/>
                     <include layout="@layout/song_card_long" />
-                    <Space
-                        android:layout_width="wrap_content"
-                        android:layout_height="11sp"/>
                     <include layout="@layout/song_card_long" />
-                    <Space
-                        android:layout_width="wrap_content"
-                        android:layout_height="11sp"/>
                     <include layout="@layout/song_card_long" />
-                    <Space
-                        android:layout_width="wrap_content"
-                        android:layout_height="11sp"/>
                     <include layout="@layout/song_card_long" />
-                    <Space
-                        android:layout_width="wrap_content"
-                        android:layout_height="11sp"/>
                     <include layout="@layout/song_card_long" />
-                    <Space
-                        android:layout_width="wrap_content"
-                        android:layout_height="11sp"/>
                     <include layout="@layout/song_card_long" />
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
