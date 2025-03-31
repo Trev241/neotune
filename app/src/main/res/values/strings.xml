@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">SoundsLike</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_download">Download</string>
+    <string name="cd_album_art">Album Art</string>
+    <string name="cd_previous">Previous track</string>
+    <string name="cd_play">Play</string>
+    <string name="cd_pause">Pause</string>
+    <string name="cd_next">Next track</string>
+    <string name="cd_like">Like song</string>
+    <string name="cd_queue">Show queue</string>
+    <string name="cd_shuffle">Shuffle</string>
 </resources>

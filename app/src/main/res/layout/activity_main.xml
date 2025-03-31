@@ -55,6 +55,34 @@
                 </LinearLayout>
             </HorizontalScrollView>
 
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Genres"
+                android:textSize="34sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12sp" />
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24sp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <!-- Include multiple genre cards -->
+                    <include layout="@layout/genre_card" />
+                    <include layout="@layout/genre_card" />
+                    <include layout="@layout/genre_card" />
+                    <!-- Add more as needed -->
+                </LinearLayout>
+            </HorizontalScrollView>
+
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

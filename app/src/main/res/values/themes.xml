@@ -5,7 +5,21 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
 
         <item name="fontFamily">@font/livvic_regular</item>
+
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:statusBarColor">@color/accent_orange</item>
     </style>
 
     <style name="Theme.SoundsLike" parent="Base.Theme.SoundsLike" />
+
+    <style name="ShapeAppearance.App.CircleImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="Widget.App.SeekBar" parent="Widget.AppCompat.SeekBar">
+        <item name="android:progressBackgroundTint">@color/seekbar_track</item>
+        <item name="android:progressTint">@color/seekbar_progress</item>
+        <item name="android:thumbTint">@color/seekbar_thumb</item>
+    </style>
 </resources>
