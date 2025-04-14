@@ -1,6 +1,6 @@
 package com.example.soundslike.ui.adapters;
 
-import android.os.Bundle; // Import Bundle
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.navigation.NavController; // Import NavController
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
@@ -17,9 +17,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.soundslike.R;
 import com.example.soundslike.data.models.Song;
-// Remove NavDirections imports if they exist
-// import com.example.soundslike.ui.playlistdetail.PlaylistDetailFragmentDirections;
-// import com.example.soundslike.ui.home.HomeFragmentDirections;
 
 
 public class RecommendedSongAdapter extends ListAdapter<Song, RecommendedSongAdapter.SongViewHolder> {
@@ -50,22 +47,21 @@ public class RecommendedSongAdapter extends ListAdapter<Song, RecommendedSongAda
         public SongViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.imageView2);
-            titleView = itemView.findViewById(R.id.songTitle); // Ensure this ID exists
+            titleView = itemView.findViewById(R.id.songTitle);
             artistView = itemView.findViewById(R.id.textView7);
         }
 
         public void bind(Song song) {
             titleView.setText(song.getTitle());
             artistView.setText(song.getArtist());
-            imageView.setImageResource(song.getAlbumArtResId()); // Load mock image
+            imageView.setImageResource(song.getAlbumArtResId());
 
             itemView.setOnClickListener(v -> {
                 try {
                     NavController navController = Navigation.findNavController(itemView);
                     Bundle args = new Bundle();
-                    args.putString("songId", song.getId()); // Key must match argument name in nav graph
+                    args.putString("songId", song.getId());
 
-                    // Determine the correct action ID based on the current destination
                     int currentDestinationId = navController.getCurrentDestination() != null ?
                             navController.getCurrentDestination().getId() : 0;
 
@@ -84,7 +80,6 @@ public class RecommendedSongAdapter extends ListAdapter<Song, RecommendedSongAda
         }
     }
 
-    // --- DiffUtil Callback ---
     public static class SongDiffCallback extends DiffUtil.ItemCallback<Song> {
         public static final SongDiffCallback INSTANCE = new SongDiffCallback();
 

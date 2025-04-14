@@ -14,19 +14,14 @@ public class SongViewModel extends ViewModel {
         return _currentSong;
     }
 
-    // TODO: Add LiveData for playback state (isPlaying, progress, duration) later
-
-    // In a real app, you'd observe the playback service or receive songId
     public SongViewModel() {
-        loadMockSong("mock_song_id"); // Load a default mock song
+        loadMockSong("mock_song_id");
     }
 
-    // In a real app, this would fetch details or get from playback service
+
     public void loadMockSong(String songId) {
-        // Load a specific mock song (e.g., Get Lucky)
         _currentSong.setValue(
                 new Song("s1", "Get Lucky", "Daft Punk", R.drawable.album_art_get_lucky, 248000)
         );
-        // TODO: Initialize playback state LiveData here later
     }
 }

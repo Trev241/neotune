@@ -17,26 +17,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.soundslike.R;
 import com.example.soundslike.data.models.Playlist;
-// Remove NavDirections imports if they exist
-// import com.example.soundslike.ui.playlists.PlaylistsFragmentDirections;
-// import com.example.soundslike.ui.home.HomeFragmentDirections;
 
 
 public class PlaylistAdapter extends ListAdapter<Playlist, PlaylistAdapter.PlaylistViewHolder> {
 
-    // Optional: Add a field to know the source if needed, or handle in fragment
-    // private final int sourceFragmentId; // e.g., R.id.navigation_home
-
     public PlaylistAdapter(/* int sourceFragmentId */) {
         super(PlaylistDiffCallback.INSTANCE);
-        // this.sourceFragmentId = sourceFragmentId;
     }
 
     @NonNull
     @Override
     public PlaylistViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.song_card, parent, false); // Using song_card layout
+                .inflate(R.layout.song_card, parent, false);
         return new PlaylistViewHolder(view /*, sourceFragmentId */);
     }
 
@@ -50,28 +43,25 @@ public class PlaylistAdapter extends ListAdapter<Playlist, PlaylistAdapter.Playl
         private final ImageView imageView;
         private final TextView titleView;
         private final TextView subtitleView;
-        // private final int sourceFragmentId; // Optional source tracking
 
         public PlaylistViewHolder(@NonNull View itemView /*, int sourceFragmentId */) {
             super(itemView);
             imageView = itemView.findViewById(R.id.imageView);
-            titleView = itemView.findViewById(R.id.textView); // Playlist Name
-            subtitleView = itemView.findViewById(R.id.textView5); // Artist/Description field
-            // this.sourceFragmentId = sourceFragmentId;
+            titleView = itemView.findViewById(R.id.textView);
+            subtitleView = itemView.findViewById(R.id.textView5);
         }
 
         public void bind(Playlist playlist) {
             titleView.setText(playlist.getName());
-            subtitleView.setVisibility(View.GONE); // Hide artist field for playlists
-            imageView.setImageResource(playlist.getCoverArtResId()); // Load mock image
+            subtitleView.setVisibility(View.GONE);
+            imageView.setImageResource(playlist.getCoverArtResId());
 
             itemView.setOnClickListener(v -> {
                 try {
                     NavController navController = Navigation.findNavController(itemView);
                     Bundle args = new Bundle();
-                    args.putString("playlistId", playlist.getId()); // Key must match argument name in nav graph
+                    args.putString("playlistId", playlist.getId());
 
-                    // Determine the correct action ID based on the current destination
                     int currentDestinationId = navController.getCurrentDestination() != null ?
                             navController.getCurrentDestination().getId() : 0;
 

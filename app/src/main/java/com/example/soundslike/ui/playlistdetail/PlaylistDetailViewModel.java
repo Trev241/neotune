@@ -23,14 +23,11 @@ public class PlaylistDetailViewModel extends ViewModel {
         return _playlistSongs;
     }
 
-    // In a real app, you'd pass the playlistId here
     public PlaylistDetailViewModel() {
-        loadMockPlaylistData("mock_id_1"); // Load mock data for a specific playlist
+        loadMockPlaylistData("mock_id_1");
     }
 
-    // In a real app, this would fetch data based on playlistId
     public void loadMockPlaylistData(String playlistId) {
-        // Mock Playlist Details (Example: "Chill Vibes")
         _playlistDetails.setValue(
                 new Playlist(playlistId, "Chill Vibes", "Relaxing tunes for your evening", R.drawable.album_art_get_lucky)
         );

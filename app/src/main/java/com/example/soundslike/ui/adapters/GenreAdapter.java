@@ -33,7 +33,6 @@ public class GenreAdapter extends ListAdapter<Genre, GenreAdapter.GenreViewHolde
         holder.bind(getItem(position));
     }
 
-    // --- ViewHolder ---
     public static class GenreViewHolder extends RecyclerView.ViewHolder {
         private final ImageView imageView;
         private final TextView nameView;
@@ -46,13 +45,10 @@ public class GenreAdapter extends ListAdapter<Genre, GenreAdapter.GenreViewHolde
 
         public void bind(Genre genre) {
             nameView.setText(genre.getName());
-            imageView.setImageResource(genre.getIconResId()); // Load mock image
-            // TODO: Add click listener later
-            // itemView.setOnClickListener(v -> { /* handle click */ });
+            imageView.setImageResource(genre.getIconResId());
         }
     }
 
-    // --- DiffUtil Callback ---
     private static class GenreDiffCallback extends DiffUtil.ItemCallback<Genre> {
         public static final GenreDiffCallback INSTANCE = new GenreDiffCallback();
 
