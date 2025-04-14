@@ -5,28 +5,70 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/navigation_home">
 
+
     <fragment
         android:id="@+id/navigation_home"
         android:name="com.example.soundslike.ui.home.HomeFragment"
         android:label="@string/title_home"
-        tools:layout="@layout/activity_home" />
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_home_to_playlist_detail"
+            app:destination="@id/navigation_playlist_detail" />
+        <action
+            android:id="@+id/action_home_to_song_view"
+            app:destination="@id/navigation_song_view" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_explore"
         android:name="com.example.soundslike.ui.explore.ExploreFragment"
         android:label="@string/title_explore"
-        tools:layout="@layout/activity_home" />
+        tools:layout="@layout/fragment_explore" />
 
     <fragment
         android:id="@+id/navigation_playlists"
         android:name="com.example.soundslike.ui.playlists.PlaylistsFragment"
         android:label="@string/title_playlists"
-        tools:layout="@layout/activity_playlist_view" />
+        tools:layout="@layout/fragment_playlists">
+        <action
+            android:id="@+id/action_playlists_to_playlist_detail"
+            app:destination="@id/navigation_playlist_detail" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_library"
         android:name="com.example.soundslike.ui.library.LibraryFragment"
         android:label="@string/title_library"
-        tools:layout="@layout/activity_home" />
+        tools:layout="@layout/fragment_library" />
+
+
+    <!-- Detail Screens -->
+    <fragment
+        android:id="@+id/navigation_playlist_detail"
+        android:name="com.example.soundslike.ui.playlistdetail.PlaylistDetailFragment"
+        android:label="Playlist"
+        tools:layout="@layout/fragment_playlist_detail">
+        <!-- Argument to receive playlist ID -->
+        <argument
+            android:name="playlistId"
+            android:defaultValue="default_playlist_id"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_playlist_detail_to_song_view"
+            app:destination="@id/navigation_song_view" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_song_view"
+        android:name="com.example.soundslike.ui.song.SongViewFragment"
+        android:label="Now Playing"
+        tools:layout="@layout/fragment_song_view">
+        <!-- Argument to receive song ID -->
+        <argument
+            android:name="songId"
+            android:defaultValue="default_song_id"
+            app:argType="string" />
+    </fragment>
 
 </navigation>

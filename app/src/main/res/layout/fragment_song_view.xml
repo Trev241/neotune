@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/background_cream"
     android:fitsSystemWindows="true"
-    tools:context=".MainActivity"> <!-- Activity -->
+    tools:context=".ui.song.SongViewFragment"> <!-- CHANGE CONTEXT LATER -->
 
     <!-- Top Bar -->
     <androidx.constraintlayout.widget.ConstraintLayout

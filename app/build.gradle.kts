@@ -44,4 +44,10 @@ dependencies {
     val navVersion = "2.7.7"
     implementation("androidx.navigation:navigation-fragment:$navVersion")
     implementation("androidx.navigation:navigation-ui:$navVersion")
+
+    val lifecycleVersion = "2.8.3"
+    val fragmentVersion = "1.8.1"
+    implementation("androidx.fragment:fragment:$fragmentVersion")
+    implementation("androidx.lifecycle:lifecycle-viewmodel:$lifecycleVersion")
+    implementation("androidx.lifecycle:lifecycle-livedata:$lifecycleVersion")
 }
