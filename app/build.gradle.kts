@@ -53,4 +53,24 @@ dependencies {
 
     implementation("androidx.media3:media3-exoplayer:1.3.1")
     implementation("androidx.media3:media3-ui:1.3.1")
+
+    implementation("androidx.media3:media3-session:1.3.1")
+
+    // Retrofit & Gson Converter
+    implementation("com.squareup.retrofit2:retrofit:2.9.0") // Use latest 2.x version
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.10.1") // Or latest
+
+    // OkHttp Logging Interceptor (for debugging network calls)
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0") // Use compatible version with Retrofit
+
+    // Glide for Image Loading
+    implementation("com.github.bumptech.glide:glide:4.15.1") // Use latest version
+    // annotationProcessor("com.github.bumptech.glide:compiler:4.15.1") // Use kapt if using Kotlin annotation processing
+
+    // Coroutines for background tasks (if not already present)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") // Use latest version
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3") // For viewModelScope
+
+
 }

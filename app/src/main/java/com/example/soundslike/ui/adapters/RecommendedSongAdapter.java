@@ -9,14 +9,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide; // Import Glide
 import com.example.soundslike.R;
 import com.example.soundslike.data.models.Song;
+import com.example.soundslike.ui.viewmodels.PlaybackViewModel;
 
 
 public class RecommendedSongAdapter extends ListAdapter<Song, RecommendedSongAdapter.SongViewHolder> {
@@ -46,6 +50,7 @@ public class RecommendedSongAdapter extends ListAdapter<Song, RecommendedSongAda
 
         public SongViewHolder(@NonNull View itemView) {
             super(itemView);
+            // Make sure these IDs match your song_card_long.xml
             imageView = itemView.findViewById(R.id.imageView2);
             titleView = itemView.findViewById(R.id.songTitle);
             artistView = itemView.findViewById(R.id.textView7);
@@ -53,33 +58,52 @@ public class RecommendedSongAdapter extends ListAdapter<Song, RecommendedSongAda
 
         public void bind(Song song) {
             titleView.setText(song.getTitle());
-            artistView.setText(song.getArtist());
-            imageView.setImageResource(song.getAlbumArtResId());
+            // Use getArtistName() - needs to be populated correctly elsewhere if needed
+            artistView.setText(song.getArtistName());
+
+            // --- Use Glide to load image from URL ---
+            Glide.with(itemView.getContext())
+                    .load(song.getThumbnailUrl()) // Load URL from Song object
+                    .placeholder(R.drawable.ic_genre_placeholder) // Placeholder image
+                    .error(R.drawable.ic_genre_placeholder) // Error image
+                    .into(imageView); // Target ImageView
+            // -----------------------------------------
 
             itemView.setOnClickListener(v -> {
                 try {
+                    PlaybackViewModel playbackViewModel = new ViewModelProvider((FragmentActivity) itemView.getContext())
+                            .get(PlaybackViewModel.class);
+
+                    // Pass necessary info to start playback
+                    playbackViewModel.playSongById(song.getId(), song.getTitle(), song.getArtistName());
+
+                    // Navigation logic
                     NavController navController = Navigation.findNavController(itemView);
                     Bundle args = new Bundle();
                     args.putString("songId", song.getId());
-
                     int currentDestinationId = navController.getCurrentDestination() != null ?
                             navController.getCurrentDestination().getId() : 0;
 
-                    if (currentDestinationId == R.id.navigation_home) {
-                        navController.navigate(R.id.action_home_to_song_view, args);
-                    } else if (currentDestinationId == R.id.navigation_playlist_detail) {
-                        navController.navigate(R.id.action_playlist_detail_to_song_view, args);
-                    } else {
-                        Log.w("RecommendedSongAdapter", "Navigation action not defined for current destination: " + currentDestinationId);
+                    if (currentDestinationId != R.id.navigation_song_view) {
+                        if (currentDestinationId == R.id.navigation_home) {
+                            navController.navigate(R.id.action_home_to_song_view, args);
+                        } else if (currentDestinationId == R.id.navigation_explore) {
+                            // Add action from explore if needed:
+                            // navController.navigate(R.id.action_explore_to_song_view, args);
+                        } else if (currentDestinationId == R.id.navigation_playlist_detail) {
+                            navController.navigate(R.id.action_playlist_detail_to_song_view, args);
+                        }
+                        // Add other cases as needed
                     }
 
-                } catch (Exception e) { // Catch broader exceptions
-                    Log.e("SongAdapter", "Navigation failed for song " + song.getId(), e);
+                } catch (Exception e) {
+                    Log.e("SongAdapter", "Click failed for song " + song.getId(), e);
                 }
             });
         }
     }
 
+    // --- DiffCallback ---
     public static class SongDiffCallback extends DiffUtil.ItemCallback<Song> {
         public static final SongDiffCallback INSTANCE = new SongDiffCallback();
 
