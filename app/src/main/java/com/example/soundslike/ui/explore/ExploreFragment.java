@@ -1,11 +1,17 @@
 package com.example.soundslike.ui.explore;
 
 import android.os.Bundle;
+import android.text.TextUtils; // Import TextUtils
+import android.util.Log; // Import Log
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Toast; // Import Toast
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,15 +22,25 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.soundslike.R;
 import com.example.soundslike.ui.adapters.RecommendedSongAdapter;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+
+import java.util.Objects; // Import Objects
+
+// --- Import for static emptyList ---
+import static java.util.Collections.emptyList;
+// -----------------------------------
+
 
 public class ExploreFragment extends Fragment {
 
     private ExploreViewModel exploreViewModel;
     private RecyclerView suggestionsRecyclerView;
-    private RecommendedSongAdapter suggestionsAdapter;
+    private RecommendedSongAdapter songsAdapter; // Rename for clarity
     private ProgressBar loadingIndicator;
-    // Add reference for search input layout if needed later
-    // private com.google.android.material.textfield.TextInputLayout searchInputLayout;
+    private TextInputLayout searchInputLayout;
+    private TextInputEditText searchEditText;
+    private TextView headerTextView; // To change header text
 
     @Nullable
     @Override
@@ -35,11 +51,13 @@ public class ExploreFragment extends Fragment {
 
         // Find views
         suggestionsRecyclerView = view.findViewById(R.id.suggestions_recycler_view);
-        // Ensure this ID exists in fragment_explore.xml
         loadingIndicator = view.findViewById(R.id.loading_indicator);
-        // searchInputLayout = view.findViewById(R.id.search_input_layout);
+        searchInputLayout = view.findViewById(R.id.search_input_layout);
+        searchEditText = view.findViewById(R.id.search_edit_text);
+        headerTextView = view.findViewById(R.id.header_suggestions); // Find header TextView
 
         setupRecyclerView();
+        setupSearchListener(); // Setup listener for search input
 
         return view;
     }
@@ -51,36 +69,68 @@ public class ExploreFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        suggestionsAdapter = new RecommendedSongAdapter();
+        songsAdapter = new RecommendedSongAdapter(); // Use the adapter
         suggestionsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        suggestionsRecyclerView.setAdapter(suggestionsAdapter);
+        suggestionsRecyclerView.setAdapter(songsAdapter);
     }
 
+    // --- Setup Listener for Search Input ---
+    private void setupSearchListener() {
+        searchEditText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                String query = searchEditText.getText() != null ? searchEditText.getText().toString() : "";
+                Log.d("ExploreFragment", "Search submitted: " + query);
+                exploreViewModel.searchSongs(query); // Trigger search in ViewModel
+                // Hide keyboard (optional)
+                android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) requireActivity().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+                if (imm != null && v != null) {
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+                return true; // Consume the action
+            }
+            return false; // Let system handle other actions
+        });
+    }
+    // --------------------------------------
+
     private void observeViewModel() {
-        // Observe loading state
         exploreViewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
             if (loadingIndicator != null) {
                 loadingIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
             }
-            // Optionally hide RecyclerView while loading
-            // suggestionsRecyclerView.setVisibility(isLoading ? View.GONE : View.VISIBLE);
         });
 
-        // Observe error messages
         exploreViewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMsg -> {
             if (errorMsg != null && !errorMsg.isEmpty()) {
-                Toast.makeText(getContext(), errorMsg, Toast.LENGTH_LONG).show();
-                // Optionally clear the error message in ViewModel after showing
-                // exploreViewModel.clearErrorMessage();
+                Toast.makeText(getContext(), errorMsg, Toast.LENGTH_SHORT).show();
+                // Clear error in VM? exploreViewModel.clearErrorMessage();
             }
         });
 
-        // Observe suggested songs
-        exploreViewModel.getSuggestedSongs().observe(getViewLifecycleOwner(), songs -> {
+        // Observe the combined display list
+        exploreViewModel.getDisplaySongs().observe(getViewLifecycleOwner(), songs -> {
             if (songs != null) {
-                suggestionsAdapter.submitList(songs);
+                Log.d("ExploreFragment", "Updating adapter with " + songs.size() + " songs.");
+                songsAdapter.submitList(songs); // Update the adapter
             } else {
-                suggestionsAdapter.submitList(java.util.Collections.emptyList()); // Clear list if null
+                // --- Use static import ---
+                songsAdapter.submitList(emptyList());
+                // -------------------------
+            }
+
+            // Update header text based on whether it's suggestions or results
+            // Check if ViewModel and its LiveData are initialized before accessing
+            if (exploreViewModel != null && exploreViewModel.getSearchQuery() != null) {
+                String currentQuery = exploreViewModel.getSearchQuery().getValue();
+                if (headerTextView != null) { // Check if headerTextView is not null
+                    if (TextUtils.isEmpty(currentQuery)) {
+                        headerTextView.setText("Suggestions For You");
+                    } else {
+                        headerTextView.setText("Search Results");
+                    }
+                }
+            } else if (headerTextView != null) {
+                headerTextView.setText("Suggestions For You"); // Default if ViewModel/Query is null
             }
         });
     }
@@ -89,11 +139,13 @@ public class ExploreFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         if (suggestionsRecyclerView != null) {
-            suggestionsRecyclerView.setAdapter(null); // Clear adapter
+            suggestionsRecyclerView.setAdapter(null);
         }
         suggestionsRecyclerView = null;
         loadingIndicator = null;
-        suggestionsAdapter = null;
-        // searchInputLayout = null;
+        songsAdapter = null;
+        searchInputLayout = null;
+        searchEditText = null;
+        headerTextView = null;
     }
 }

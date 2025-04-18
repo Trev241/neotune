@@ -27,6 +27,13 @@ public interface ApiService {
             @Query("limit") int limit
     );
 
+    @GET("songs/search")
+    Call<List<Song>> searchSongs(
+            @Query("query") String searchQuery, // The required search term
+            @Query("skip") int skip,
+            @Query("limit") int limit
+    );
+
     @GET("playlists/{playlist_id}")
     Call<PlaylistDetail> getPlaylistDetails(
             @Path("playlist_id") String playlistId

@@ -1,25 +1,35 @@
 package com.example.soundslike.ui.explore;
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MediatorLiveData; // Import MediatorLiveData
+import android.text.TextUtils;
+import android.util.Log;
+
+import androidx.lifecycle.LiveData; // Import LiveData
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-// Import R if needed for placeholders, otherwise remove
-// import com.example.soundslike.R;
 import com.example.soundslike.data.models.Song;
-import com.example.soundslike.data.repository.SongRepository; // Import repository
+import com.example.soundslike.data.repository.SongRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ExploreViewModel extends ViewModel {
 
-    // Use MediatorLiveData to observe repository
-    private final MediatorLiveData<List<Song>> _suggestedSongs = new MediatorLiveData<>();
-    public LiveData<List<Song>> getSuggestedSongs() { return _suggestedSongs; }
+    private static final String TAG = "ExploreViewModel";
 
-    // Add LiveData for loading state and errors
+    private final MediatorLiveData<List<Song>> _displaySongs = new MediatorLiveData<>();
+    public LiveData<List<Song>> getDisplaySongs() { return _displaySongs; }
+
+    private final MutableLiveData<List<Song>> _searchResults = new MutableLiveData<>();
+
+    // Keep this private
+    private final MutableLiveData<String> _searchQuery = new MutableLiveData<>("");
+    // --- ADD PUBLIC GETTER FOR THE QUERY ---
+    public LiveData<String> getSearchQuery() { return _searchQuery; }
+    // ---------------------------------------
+
     private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
     public LiveData<Boolean> isLoading() { return _isLoading; }
 
@@ -27,54 +37,76 @@ public class ExploreViewModel extends ViewModel {
     public LiveData<String> getErrorMessage() { return _errorMessage; }
 
     private final SongRepository songRepository;
-    private LiveData<List<Song>> songsSource = null; // Keep track of the source
+    private LiveData<List<Song>> currentSource = null;
 
     public ExploreViewModel() {
-        songRepository = new SongRepository(); // Instantiate repository
-        loadSuggestedSongs(); // Load songs from API
+        songRepository = new SongRepository();
+        // Observe the search query LiveData (use the public getter now)
+        _displaySongs.addSource(getSearchQuery(), query -> { // Use getter here
+            if (TextUtils.isEmpty(query)) {
+                loadSuggestedSongs();
+            } else {
+                performSearch(query);
+            }
+        });
+        loadSuggestedSongs();
     }
 
-    // --- Method to load songs from API ---
     private void loadSuggestedSongs() {
-        if (songsSource != null) {
-            _suggestedSongs.removeSource(songsSource); // Remove previous source if any
+        Log.d(TAG, "Loading suggested songs...");
+        if (currentSource != null) {
+            _displaySongs.removeSource(currentSource);
         }
         _isLoading.setValue(true);
         _errorMessage.setValue(null);
-
-        // Fetch songs from repository (e.g., first 20 songs)
-        songsSource = songRepository.getSongs(0, 20);
-
-        _suggestedSongs.addSource(songsSource, songs -> {
-            // This lambda is called when the repository LiveData updates
-            _suggestedSongs.setValue(songs); // Update our LiveData
-            _isLoading.setValue(false); // Loading finished
-            if (songs == null || songs.isEmpty()) {
-                // Optionally set an error message if the result is empty/null after loading
-                _errorMessage.setValue("No suggested songs found.");
+        currentSource = songRepository.getSongs(0, 20);
+        _displaySongs.addSource(currentSource, songs -> {
+            // Use the getter to check the current query state
+            if (TextUtils.isEmpty(getSearchQuery().getValue())) {
+                _isLoading.setValue(false);
+                if (songs != null) {
+                    _displaySongs.setValue(songs);
+                } else {
+                    _errorMessage.setValue("Failed to load suggestions.");
+                    _displaySongs.setValue(new ArrayList<>());
+                }
             }
         });
     }
-    // --- END ---
 
-    // --- REMOVE Mock data loading method ---
-    /*
-    private void loadMockSuggestions() {
-        List<Song> mockSuggestions = new ArrayList<>();
-        // ... mock song creation ...
-        _suggestedSongs.setValue(mockSuggestions);
+    public void searchSongs(String query) {
+        _searchQuery.setValue(query == null ? "" : query.trim());
     }
-    */
-    // --- END ---
 
-    // TODO: Add method for handling search later
-    // public void search(String query) { ... }
+    private void performSearch(String query) {
+        Log.d(TAG, "Performing search for: " + query);
+        if (currentSource != null) {
+            _displaySongs.removeSource(currentSource);
+        }
+        _isLoading.setValue(true);
+        _errorMessage.setValue(null);
+        currentSource = songRepository.searchSongs(query, 0, 50);
+        _displaySongs.addSource(currentSource, searchResults -> {
+            // Use the getter to check the current query state
+            if (Objects.equals(query, getSearchQuery().getValue()) && !TextUtils.isEmpty(query)) {
+                _isLoading.setValue(false);
+                if (searchResults != null) {
+                    _displaySongs.setValue(searchResults);
+                    if (searchResults.isEmpty()) {
+                        _errorMessage.setValue("No results found for '" + query + "'");
+                    }
+                } else {
+                    _errorMessage.setValue("Search failed.");
+                    _displaySongs.setValue(new ArrayList<>());
+                }
+            }
+        });
+    }
 
     @Override
     protected void onCleared() {
-        // Clean up observers when ViewModel is destroyed
-        if (songsSource != null) {
-            _suggestedSongs.removeSource(songsSource);
+        if (currentSource != null) {
+            _displaySongs.removeSource(currentSource);
         }
         super.onCleared();
     }
