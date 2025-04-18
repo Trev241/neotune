@@ -1,17 +1,21 @@
 package com.example.soundslike.ui.song;
 
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,7 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.soundslike.R;
 import com.example.soundslike.data.models.Playlist;
 import com.example.soundslike.ui.adapters.PlaylistSelectionAdapter;
-import com.example.soundslike.ui.playlists.PlaylistsViewModel; // Use this to get playlists
+import com.example.soundslike.ui.playlists.PlaylistsViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -35,11 +39,10 @@ public class AddToPlaylistBottomSheetFragment extends BottomSheetDialogFragment 
     private PlaylistSelectionAdapter adapter;
     private ProgressBar loadingIndicator;
     private TextView createPlaylistButton;
-    private PlaylistsViewModel playlistsViewModel; // To get user playlists
+    private PlaylistsViewModel playlistsViewModel;
 
     private String songIdToAdd;
 
-    // Factory method to create instance with arguments
     public static AddToPlaylistBottomSheetFragment newInstance(String songId) {
         AddToPlaylistBottomSheetFragment fragment = new AddToPlaylistBottomSheetFragment();
         Bundle args = new Bundle();
@@ -54,8 +57,6 @@ public class AddToPlaylistBottomSheetFragment extends BottomSheetDialogFragment 
         if (getArguments() != null) {
             songIdToAdd = getArguments().getString(ARG_SONG_ID);
         }
-        // Get ViewModel scoped to the Activity or NavGraph to share playlist data
-        // This assumes PlaylistsViewModel holds the list of user's playlists
         playlistsViewModel = new ViewModelProvider(requireActivity()).get(PlaylistsViewModel.class);
     }
 
@@ -77,12 +78,11 @@ public class AddToPlaylistBottomSheetFragment extends BottomSheetDialogFragment 
         setupListeners();
         observeViewModel();
 
-        // TODO: Trigger fetching user playlists if PlaylistsViewModel doesn't load them automatically
-        // For now, relies on mock data loaded in PlaylistsViewModel constructor
-        // Example: playlistsViewModel.fetchUserPlaylistsIfNeeded();
+        // --- Trigger fetching user playlists when sheet opens ---
+        playlistsViewModel.fetchUserPlaylists();
+        // ------------------------------------------------------
     }
 
-    // Make bottom sheet expand fully
     @NonNull @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         BottomSheetDialog dialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
@@ -91,13 +91,10 @@ public class AddToPlaylistBottomSheetFragment extends BottomSheetDialogFragment 
             View bottomSheetInternal = bottomSheetDialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (bottomSheetInternal != null) {
                 BottomSheetBehavior.from(bottomSheetInternal).setState(BottomSheetBehavior.STATE_EXPANDED);
-                // Optional: Set peek height if needed when not fully expanded
-                // BottomSheetBehavior.from(bottomSheetInternal).setPeekHeight(getResources().getDisplayMetrics().heightPixels / 2);
             }
         });
         return dialog;
     }
-
 
     private void setupRecyclerView() {
         adapter = new PlaylistSelectionAdapter(this);
@@ -106,32 +103,44 @@ public class AddToPlaylistBottomSheetFragment extends BottomSheetDialogFragment 
     }
 
     private void setupListeners() {
-        createPlaylistButton.setOnClickListener(v -> {
-            // TODO: Implement Create New Playlist UI / Logic
-            Toast.makeText(getContext(), "Create New Playlist clicked (Not Implemented)", Toast.LENGTH_SHORT).show();
-            // dismiss(); // Optionally dismiss after click
-        });
+        createPlaylistButton.setOnClickListener(v -> showCreatePlaylistDialog());
     }
 
     private void observeViewModel() {
-        // Observe the playlists LiveData from the shared ViewModel
-        // This currently gets the MOCK data from PlaylistsViewModel
-        loadingIndicator.setVisibility(View.VISIBLE); // Show loading initially
-        playlistsViewModel.getUserPlaylists().observe(getViewLifecycleOwner(), playlists -> {
-            loadingIndicator.setVisibility(View.GONE); // Hide loading
-            if (playlists != null) {
-                Log.d(TAG, "Observed " + playlists.size() + " playlists.");
-                adapter.submitList(playlists);
-            } else {
-                Log.d(TAG, "Observed null playlist list.");
-                adapter.submitList(Collections.emptyList());
-                // Optionally show an error message TextView
+        // Observe loading state
+        playlistsViewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            loadingIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            // Optionally disable buttons while loading
+            createPlaylistButton.setEnabled(!isLoading);
+            playlistRecyclerView.setEnabled(!isLoading); // Might not visually disable clicks
+        });
+
+        // Observe error messages
+        playlistsViewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
+                // Optionally clear error in ViewModel: playlistsViewModel.clearErrorMessage();
             }
         });
 
-        // TODO: Add observation for loading/error states if PlaylistsViewModel fetches data
-        // playlistsViewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> { ... });
-        // playlistsViewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> { ... });
+        // Observe the actual playlist list
+        playlistsViewModel.getUserPlaylists().observe(getViewLifecycleOwner(), playlists -> {
+            // Loading is handled by the isLoading LiveData now
+            if (playlists != null) {
+                Log.d(TAG, "Updating playlist list in sheet: " + playlists.size() + " items");
+                adapter.submitList(playlists);
+            } else {
+                adapter.submitList(Collections.emptyList());
+            }
+        });
+
+        // Observe action feedback messages
+        playlistsViewModel.getActionFeedback().observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                playlistsViewModel.clearActionFeedback(); // Clear message after showing
+            }
+        });
     }
 
     @Override
@@ -139,13 +148,45 @@ public class AddToPlaylistBottomSheetFragment extends BottomSheetDialogFragment 
         Log.d(TAG, "Selected playlist: " + playlist.getName() + " (ID: " + playlist.getId() + ")");
         Log.d(TAG, "Song to add: " + songIdToAdd);
 
-        // TODO: Implement API call to add song to playlist
-        // 1. Get auth token (requires auth implementation)
-        // 2. Get PlaylistRepository instance (maybe via ViewModel or injection)
-        // 3. Call repository method: addSong(playlist.getId(), songIdToAdd, token)
-        // 4. Handle success/failure (show Toast, dismiss sheet)
+        // Call ViewModel to handle adding the song via API
+        playlistsViewModel.addSongToPlaylist(playlist.getId(), playlist.getName(), songIdToAdd);
 
-        Toast.makeText(getContext(), "Adding '" + songIdToAdd + "' to '" + playlist.getName() + "' (Not Implemented)", Toast.LENGTH_SHORT).show();
         dismiss(); // Close the bottom sheet
+    }
+
+    private void showCreatePlaylistDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Create New Playlist");
+
+        final EditText input = new EditText(requireContext());
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        input.setHint("Playlist Name");
+        int paddingDp = 16;
+        float density = getResources().getDisplayMetrics().density;
+        int paddingPixel = (int)(paddingDp * density);
+        // Create a container for the EditText to add padding easily
+        android.widget.FrameLayout container = new android.widget.FrameLayout(requireContext());
+        android.widget.FrameLayout.LayoutParams params = new  android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.leftMargin = paddingPixel;
+        params.rightMargin = paddingPixel;
+        input.setLayoutParams(params);
+        container.addView(input);
+        builder.setView(container); // Set the container as the view
+
+        builder.setPositiveButton("Create & Add Song", (dialog, which) -> {
+            String playlistName = input.getText().toString().trim();
+            if (!playlistName.isEmpty() && songIdToAdd != null) {
+                // Call ViewModel to handle creation and adding via API
+                playlistsViewModel.createPlaylistAndAddSong(playlistName, songIdToAdd);
+                // Don't dismiss here, let the feedback LiveData handle UI changes or dismissal
+            } else if (playlistName.isEmpty()) {
+                Toast.makeText(getContext(), "Playlist name cannot be empty", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "Error: Song ID missing", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
     }
 }

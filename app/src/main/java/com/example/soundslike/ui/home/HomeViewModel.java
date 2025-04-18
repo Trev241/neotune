@@ -64,7 +64,7 @@ public class HomeViewModel extends ViewModel {
         mockPlaylists.add(new Playlist(
                 "pl1",                          // id
                 "Chill Vibes",                  // name
-                "mock_user",                    // userId (placeholder)
+                3,                    // userId (placeholder)
                 null,                           // coverImageUrl (placeholder - use null or a URL string)
                 new Date(),                     // createdAt (placeholder)
                 null,                           // updatedAt (placeholder)
@@ -76,7 +76,7 @@ public class HomeViewModel extends ViewModel {
         mockPlaylists.add(new Playlist(
                 "pl2",                          // id
                 "Workout Beats",                // name
-                "mock_user",                    // userId
+                7,                    // userId
                 null,                           // coverImageUrl
                 new Date(),                     // createdAt
                 null,                           // updatedAt
