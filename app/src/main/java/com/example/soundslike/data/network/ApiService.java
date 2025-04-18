@@ -1,5 +1,6 @@
 package com.example.soundslike.data.network;
 
+import com.example.soundslike.data.models.PlaylistDetail;
 import com.example.soundslike.data.models.Song;
 
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.List;
 import retrofit2.Call; // Use Call for standard Java/Retrofit
 import retrofit2.Response;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 // import retrofit2.http.Path; // For path parameters later
 
@@ -18,6 +20,11 @@ public interface ApiService {
     Call<List<Song>> getSongs( // Return Call<List<Song>>
                                @Query("skip") int skip,
                                @Query("limit") int limit
+    );
+
+    @GET("playlists/{playlist_id}")
+    Call<PlaylistDetail> getPlaylistDetails(
+            @Path("playlist_id") String playlistId // Use @Path for URL parameters
     );
 
     // Add other endpoints later

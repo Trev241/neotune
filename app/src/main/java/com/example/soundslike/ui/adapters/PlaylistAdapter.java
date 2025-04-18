@@ -64,17 +64,19 @@ public class PlaylistAdapter extends ListAdapter<Playlist, PlaylistAdapter.Playl
                     .into(imageView);
 
             // --- TEMPORARY CLICK LISTENER FOR TESTING ---
+            // Inside PlaylistViewHolder class -> bind(Playlist playlist) method
+
+            // --- REVERT CLICK LISTENER ---
             itemView.setOnClickListener(v -> {
                 try {
                     NavController navController = Navigation.findNavController(itemView);
                     Bundle args = new Bundle();
-                    // Pass a dummy ID - PlaylistDetailViewModel will ignore it
-                    // and load mock data anyway for this test setup.
-                    args.putString("playlistId", "dummy_id_for_test");
+                    // Pass the ACTUAL playlist ID
+                    args.putString("playlistId", playlist.getId());
                     int currentDestinationId = navController.getCurrentDestination() != null ?
                             navController.getCurrentDestination().getId() : 0;
 
-                    Log.d("PlaylistAdapter", "Navigating to detail view (using dummy ID for test)");
+                    Log.d("PlaylistAdapter", "Navigating to detail view for playlist ID: " + playlist.getId());
 
                     // Navigate from appropriate source fragment
                     if (currentDestinationId == R.id.navigation_home) {
@@ -85,10 +87,10 @@ public class PlaylistAdapter extends ListAdapter<Playlist, PlaylistAdapter.Playl
                     // Add other navigation sources if needed (e.g., Library)
 
                 } catch (Exception e) {
-                    // Use a more specific playlist identifier if available for logging
-                    Log.e("PlaylistAdapter", "Click failed for playlist item", e);
+                    Log.e("PlaylistAdapter", "Click failed for playlist: " + playlist.getId(), e);
                 }
             });
+            // --- END OF REVERTED CLICK LISTENER ---
             // --- END OF TEMPORARY CLICK LISTENER ---
         }
     }

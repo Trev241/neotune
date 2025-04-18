@@ -1,7 +1,6 @@
 package com.example.soundslike.ui.song;
 
 import android.os.Bundle;
-// Removed Handler/Looper imports
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,14 +8,18 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast; // Import Toast
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity; // Import FragmentActivity
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.bumptech.glide.Glide; // Import Glide
 import com.example.soundslike.R;
+import com.example.soundslike.data.models.Song; // Import Song model
 import com.example.soundslike.ui.viewmodels.PlaybackViewModel;
 import com.google.android.material.imageview.ShapeableImageView;
 
@@ -40,19 +43,16 @@ public class SongViewFragment extends Fragment {
     private ImageButton previousButton;
     private ImageButton nextButton;
     private ImageButton likeButton;
-    private ImageButton queueButton;
+    private ImageButton queueButton; // Renamed variable for clarity (maps to button_queue ID)
     private ImageButton shuffleButton;
 
     private boolean isTrackingSeekBar = false;
-    // Removed Handler and Runnable
-
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_song_view, container, false);
 
-        // Get Activity-Scoped ViewModel using requireActivity()
         playbackViewModel = new ViewModelProvider(requireActivity()).get(PlaybackViewModel.class);
 
         // Find views
@@ -67,7 +67,7 @@ public class SongViewFragment extends Fragment {
         previousButton = view.findViewById(R.id.button_previous);
         nextButton = view.findViewById(R.id.button_next);
         likeButton = view.findViewById(R.id.button_like);
-        queueButton = view.findViewById(R.id.button_queue);
+        queueButton = view.findViewById(R.id.button_queue); // Find the button by its ID
         shuffleButton = view.findViewById(R.id.button_shuffle);
 
         setupUIListeners();
@@ -79,19 +79,15 @@ public class SongViewFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         observeViewModel();
-        // Removed setupProgressUpdater call
     }
 
     private void setupUIListeners() {
         backButton.setOnClickListener(v -> {
-            if (NavHostFragment.findNavController(this).popBackStack()) {
-                // Successfully popped back
-            } else {
-                // Handle case where popping back isn't possible (e.g., deep link)
-                // Maybe navigate to home or finish activity
+            if (!NavHostFragment.findNavController(this).popBackStack()) {
+                // Handle case where popping back isn't possible
+                requireActivity().finish(); // Example: finish activity
             }
         });
-
 
         playPauseButton.setOnClickListener(v -> playbackViewModel.togglePlayPause());
         previousButton.setOnClickListener(v -> playbackViewModel.skipToPrevious());
@@ -106,12 +102,8 @@ public class SongViewFragment extends Fragment {
                     currentTimeTextView.setText(formatMillis(progress));
                 }
             }
-
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                isTrackingSeekBar = true;
-            }
-
+            public void onStartTrackingTouch(SeekBar seekBar) { isTrackingSeekBar = true; }
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 isTrackingSeekBar = false;
@@ -120,14 +112,33 @@ public class SongViewFragment extends Fragment {
         });
 
         likeButton.setOnClickListener(v -> {
-            boolean isLiked = !likeButton.isSelected(); // Toggle state
+            boolean isLiked = !likeButton.isSelected();
             likeButton.setSelected(isLiked);
             likeButton.setImageResource(isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart);
             // TODO: Send API call later
         });
 
+        // --- Updated Queue/Add Button Listener ---
+        queueButton.setOnClickListener(v -> {
+            Song currentSong = playbackViewModel.getCurrentSong().getValue();
+            if (currentSong != null && currentSong.getId() != null && !currentSong.getId().equals("unknown")) {
+                String songId = currentSong.getId();
+                Log.d(TAG, "Add to Playlist button clicked for song: " + songId);
+
+                // Create and show the bottom sheet
+                AddToPlaylistBottomSheetFragment bottomSheet = AddToPlaylistBottomSheetFragment.newInstance(songId);
+                // Use getChildFragmentManager() when showing a DialogFragment from within a Fragment
+                bottomSheet.show(getChildFragmentManager(), AddToPlaylistBottomSheetFragment.TAG);
+
+            } else {
+                Log.w(TAG, "Add to Playlist button clicked but current song or song ID is null/invalid");
+                Toast.makeText(getContext(), "Cannot add song: Information missing", Toast.LENGTH_SHORT).show();
+            }
+        });
+        // --------------------------------------
+
         shuffleButton.setOnClickListener(v -> {
-            boolean isShuffleOn = !shuffleButton.isSelected(); // Toggle state
+            boolean isShuffleOn = !shuffleButton.isSelected();
             shuffleButton.setSelected(isShuffleOn);
             shuffleButton.setAlpha(isShuffleOn ? 1.0f : 0.5f);
             // TODO: Tell Playback Service later
@@ -139,13 +150,25 @@ public class SongViewFragment extends Fragment {
             Log.d(TAG, "Observed current song change: " + (song != null ? song.getTitle() : "null"));
             if (song != null) {
                 titleTextView.setText(song.getTitle());
-                artistTextView.setText(song.getArtist());
-                // TODO: Use Glide/Coil later for real album art URI from API
-                albumArtImageView.setImageResource(song.getAlbumArtResId()); // Use mock Res ID for now
+                artistTextView.setText(song.getArtistName()); // Use getArtistName
+
+                // --- Load Album Art using Glide ---
+                if (getView() != null && getContext() != null) { // Check context as well
+                    Glide.with(this) // Use fragment context
+                            .load(song.getThumbnailUrl()) // Load URL
+                            .placeholder(R.drawable.ic_genre_placeholder) // Placeholder
+                            .error(R.drawable.ic_genre_placeholder) // Error placeholder
+                            .into(albumArtImageView);
+                }
+                // ----------------------------------
+
             } else {
+                // Reset UI when song is null
                 titleTextView.setText("");
                 artistTextView.setText("");
-                albumArtImageView.setImageResource(R.drawable.ic_genre_placeholder);
+                if (getContext() != null) { // Check context before loading resource
+                    albumArtImageView.setImageResource(R.drawable.ic_genre_placeholder);
+                }
                 totalTimeTextView.setText(formatMillis(0));
                 currentTimeTextView.setText(formatMillis(0));
                 seekBar.setMax(0);
@@ -160,25 +183,22 @@ public class SongViewFragment extends Fragment {
 
         playbackViewModel.getCurrentDuration().observe(getViewLifecycleOwner(), duration -> {
             Log.d(TAG, "Observed duration change: " + duration);
-            if (duration > 0) {
+            if (duration != null && duration > 0) { // Check for null
                 totalTimeTextView.setText(formatMillis(duration));
-                seekBar.setMax((int) duration.longValue());
+                seekBar.setMax(duration.intValue()); // Cast to int
             } else {
                 totalTimeTextView.setText(formatMillis(0));
                 seekBar.setMax(0);
             }
         });
 
-        // Observe current position directly from ViewModel
         playbackViewModel.getCurrentPosition().observe(getViewLifecycleOwner(), position -> {
-            if (!isTrackingSeekBar) {
-                seekBar.setProgress(position.intValue());
+            if (!isTrackingSeekBar && position != null) { // Check for null
+                seekBar.setProgress(position.intValue()); // Cast to int
                 currentTimeTextView.setText(formatMillis(position));
             }
         });
     }
-
-    // Removed setupProgressUpdater, startProgressUpdater, stopProgressUpdater
 
     private String formatMillis(long millis) {
         if (millis < 0) millis = 0;
@@ -191,7 +211,6 @@ public class SongViewFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Removed stopProgressUpdater call
         backButton = null;
         albumArtImageView = null;
         titleTextView = null;

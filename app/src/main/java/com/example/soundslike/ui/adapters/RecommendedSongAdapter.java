@@ -73,11 +73,10 @@ public class RecommendedSongAdapter extends ListAdapter<Song, RecommendedSongAda
                 try {
                     PlaybackViewModel playbackViewModel = new ViewModelProvider((FragmentActivity) itemView.getContext())
                             .get(PlaybackViewModel.class);
-
-                    // Pass necessary info to start playback
+                    // Start playback
                     playbackViewModel.playSongById(song.getId(), song.getTitle(), song.getArtistName());
 
-                    // Navigation logic
+                    // Navigate to player view
                     NavController navController = Navigation.findNavController(itemView);
                     Bundle args = new Bundle();
                     args.putString("songId", song.getId());
@@ -85,17 +84,17 @@ public class RecommendedSongAdapter extends ListAdapter<Song, RecommendedSongAda
                             navController.getCurrentDestination().getId() : 0;
 
                     if (currentDestinationId != R.id.navigation_song_view) {
-                        if (currentDestinationId == R.id.navigation_home) {
+                        // Navigate from appropriate source fragment
+                        if (currentDestinationId == R.id.navigation_home) { // Add Explore case if needed
                             navController.navigate(R.id.action_home_to_song_view, args);
                         } else if (currentDestinationId == R.id.navigation_explore) {
-                            // Add action from explore if needed:
-                            // navController.navigate(R.id.action_explore_to_song_view, args);
+                            // *** Add this action to mobile_navigation.xml if missing ***
+                            // Example: <action android:id="@+id/action_explore_to_song_view" app:destination="@id/navigation_song_view" />
+                            navController.navigate(R.id.action_explore_to_song_view, args);
                         } else if (currentDestinationId == R.id.navigation_playlist_detail) {
                             navController.navigate(R.id.action_playlist_detail_to_song_view, args);
                         }
-                        // Add other cases as needed
                     }
-
                 } catch (Exception e) {
                     Log.e("SongAdapter", "Click failed for song " + song.getId(), e);
                 }

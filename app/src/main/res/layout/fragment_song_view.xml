@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/background_cream"
     android:fitsSystemWindows="true"
-    tools:context=".ui.song.SongViewFragment"> <!-- CHANGE CONTEXT LATER -->
+    tools:context=".ui.song.SongViewFragment">
 
     <!-- Top Bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -44,7 +44,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/icon_tint_dark"/>
+            app:tint="@color/icon_tint_dark" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -77,44 +77,55 @@
                 android:layout_height="0dp"
                 android:layout_marginTop="24dp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/album_art_get_lucky"
-                app:layout_constraintDimensionRatio="1:1"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHeight_percent="0.4"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.App.CircleImageView"
-                app:strokeColor="#888888"
-                app:strokeWidth="1dp" /> <!-- Optional: Added stroke to mimic slight outline -->
+                tools:src="@drawable/album_art_get_lucky"
+            android:src="@drawable/ic_genre_placeholder"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_percent="0.4"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.App.CircleImageView"
+            app:strokeColor="#888888"
+            app:strokeWidth="1dp" />
 
 
             <!-- Song Title -->
             <TextView
                 android:id="@+id/text_song_title"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="24dp"
-                android:text="Get Lucky"
+                android:layout_marginEnd="8dp"
+                android:ellipsize="end"
+                android:gravity="center_horizontal"
+                android:maxLines="2"
                 android:textColor="@color/text_primary"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/image_album_art" />
+                app:layout_constraintTop_toBottomOf="@+id/image_album_art"
+                tools:text="Get Lucky (Very Long Title Example That Wraps)" />
 
             <!-- Artist Name -->
             <TextView
                 android:id="@+id/text_artist_name"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="4dp"
+                android:layout_marginEnd="8dp"
+                android:ellipsize="end"
                 android:fontFamily="@font/livvic_regular"
-                android:text="Daft Punk"
+                android:gravity="center_horizontal"
+                android:maxLines="1"
                 android:textColor="@color/text_secondary"
                 android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/text_song_title" />
+                app:layout_constraintTop_toBottomOf="@+id/text_song_title"
+                tools:text="Daft Punk ft. Pharrell Williams and Nile Rodgers" />
 
 
             <!-- Controls -->
@@ -151,7 +162,7 @@
                     android:padding="16dp"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_pause"
-                    app:tint="@color/icon_tint_dark" /> <!-- Dark tint for contrast on orange -->
+                    app:tint="@color/icon_tint_dark" />
 
                 <ImageButton
                     android:id="@+id/button_next"
@@ -171,24 +182,24 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
+                android:layout_marginBottom="16dp"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/controls_container"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintVertical_bias="0.0"
-                android:layout_marginBottom="16dp">
+                app:layout_constraintVertical_bias="0.0">
 
 
                 <TextView
                     android:id="@+id/text_current_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="3:05"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     app:layout_constraintBottom_toBottomOf="@+id/seek_bar"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/seek_bar" />
+                    app:layout_constraintTop_toTopOf="@+id/seek_bar"
+                    tools:text="3:05" />
 
                 <SeekBar
                     android:id="@+id/seek_bar"
@@ -197,25 +208,24 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
-                    android:max="248"
-                    android:progress="185"
                     app:layout_constraintEnd_toStartOf="@+id/text_total_time"
                     app:layout_constraintStart_toEndOf="@+id/text_current_time"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:max="248"
+                    tools:progress="185" />
 
                 <TextView
                     android:id="@+id/text_total_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="4:08"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     app:layout_constraintBottom_toBottomOf="@+id/seek_bar"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/seek_bar" />
+                    app:layout_constraintTop_toTopOf="@+id/seek_bar"
+                    tools:text="4:08" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
-
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -251,7 +261,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/cd_queue"
+            android:contentDescription="@string/cd_add_to_playlist"
             android:padding="16dp"
             android:src="@drawable/ic_queue"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -279,13 +289,13 @@
             android:id="@+id/indicator_dots"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_dots_indicator"
-            app:layout_constraintStart_toStartOf="@id/button_queue"
-            app:layout_constraintEnd_toEndOf="@id/button_queue"
-            app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="8dp"
-            app:tint="@color/icon_tint_medium_dark_faded"
-            />
+            android:contentDescription="@null"
+            android:src="@drawable/ic_dots_indicator"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/button_queue"
+            app:layout_constraintStart_toStartOf="@id/button_queue"
+            app:tint="@color/icon_tint_medium_dark_faded" /> <!-- Added null content description -->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -10,6 +10,7 @@
     <string name="cd_like">Like song</string>
     <string name="cd_queue">Show queue</string>
     <string name="cd_shuffle">Shuffle</string>
+    <string name="cd_add_to_playlist">Add to playlist</string>
 
     <string name="title_home">Home</string>
     <string name="title_explore">Explore</string>

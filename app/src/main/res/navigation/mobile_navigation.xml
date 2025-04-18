@@ -23,7 +23,11 @@
         android:id="@+id/navigation_explore"
         android:name="com.example.soundslike.ui.explore.ExploreFragment"
         android:label="@string/title_explore"
-        tools:layout="@layout/fragment_explore" />
+        tools:layout="@layout/fragment_explore">
+        <action
+            android:id="@+id/action_explore_to_song_view"
+            app:destination="@id/navigation_song_view" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_playlists"
