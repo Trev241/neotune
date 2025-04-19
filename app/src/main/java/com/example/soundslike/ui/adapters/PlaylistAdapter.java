@@ -33,8 +33,11 @@ public class PlaylistAdapter extends ListAdapter<Playlist, PlaylistAdapter.Playl
     @Override
     public PlaylistViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Use song_card.xml, assuming it has the necessary views
+        // Adjust layout if needed (e.g., if Library uses song_card_long)
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.song_card, parent, false);
+                .inflate(R.layout.song_card, parent, false); // Using song_card for grid/horizontal
+        // If Library uses a vertical list with song_card_long, you might need viewType logic
+        // or a separate adapter. For now, assume song_card is okay.
         return new PlaylistViewHolder(view);
     }
 
@@ -51,10 +54,10 @@ public class PlaylistAdapter extends ListAdapter<Playlist, PlaylistAdapter.Playl
 
         public PlaylistViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Ensure these IDs match your song_card.xml layout
-            imageView = itemView.findViewById(R.id.imageView);
-            titleView = itemView.findViewById(R.id.textView);
-            subtitleView = itemView.findViewById(R.id.textView5);
+            // Ensure these IDs match your chosen layout (song_card.xml or other)
+            imageView = itemView.findViewById(R.id.imageView); // From song_card.xml
+            titleView = itemView.findViewById(R.id.textView); // From song_card.xml
+            subtitleView = itemView.findViewById(R.id.textView5); // From song_card.xml
         }
 
         public void bind(Playlist playlist) {
@@ -70,17 +73,13 @@ public class PlaylistAdapter extends ListAdapter<Playlist, PlaylistAdapter.Playl
             String imageUrl = playlist.getCoverImageUrl();
             String placeholderUrl = null; // Variable for placeholder URL
 
-            // --- Check if API provided URL is empty/null ---
             if (TextUtils.isEmpty(imageUrl)) {
-                // Generate a random placeholder URL if API URL is missing
                 String baseUrl = "https://picsum.photos/seed/";
                 int imageSize = 200;
-                // Use playlist ID for a somewhat consistent random image per playlist
                 String seed = playlist.getId() != null ? playlist.getId() : "random" + random.nextInt();
                 placeholderUrl = baseUrl + seed + "/" + imageSize;
                 Log.d("PlaylistAdapter", "No cover URL for '" + playlist.getName() + "', using placeholder: " + placeholderUrl);
             }
-            // ---------------------------------------------
 
             Glide.with(itemView.getContext())
                     .load(TextUtils.isEmpty(imageUrl) ? placeholderUrl : imageUrl) // Load original or placeholder
@@ -89,29 +88,46 @@ public class PlaylistAdapter extends ListAdapter<Playlist, PlaylistAdapter.Playl
                     .centerCrop() // Scale type
                     .into(imageView);
 
-            // Click listener to navigate to detail view
+            // --- Updated Click listener ---
             itemView.setOnClickListener(v -> {
+                if (playlist == null || playlist.getId() == null) {
+                    Log.e("PlaylistAdapter", "Cannot navigate, playlist or ID is null.");
+                    return;
+                }
                 try {
                     NavController navController = Navigation.findNavController(itemView);
                     Bundle args = new Bundle();
                     args.putString("playlistId", playlist.getId()); // Pass the actual ID
+
                     int currentDestinationId = navController.getCurrentDestination() != null ?
                             navController.getCurrentDestination().getId() : 0;
 
-                    Log.d("PlaylistAdapter", "Navigating to detail view for playlist ID: " + playlist.getId());
+                    Log.d("PlaylistAdapter", "Navigating from destination ID: " + currentDestinationId + " to detail view for playlist ID: " + playlist.getId());
 
-                    // Navigate from appropriate source fragment
+                    // Determine the correct action based on the current fragment
+                    int actionId = 0;
                     if (currentDestinationId == R.id.navigation_home) {
-                        navController.navigate(R.id.action_home_to_playlist_detail, args);
+                        actionId = R.id.action_home_to_playlist_detail;
                     } else if (currentDestinationId == R.id.navigation_playlists) {
-                        navController.navigate(R.id.action_playlists_to_playlist_detail, args);
+                        actionId = R.id.action_playlists_to_playlist_detail;
+                    } else if (currentDestinationId == R.id.navigation_library) { // **** ADD THIS CASE ****
+                        actionId = R.id.action_library_to_playlist_detail;
                     }
-                    // Add other navigation sources if needed
+                    // Add other potential source fragments if needed
 
-                } catch (Exception e) {
-                    Log.e("PlaylistAdapter", "Click failed for playlist: " + playlist.getId(), e);
+                    if (actionId != 0) {
+                        navController.navigate(actionId, args);
+                    } else {
+                        Log.e("PlaylistAdapter", "Cannot determine navigation action from destination ID: " + currentDestinationId);
+                    }
+
+                } catch (Exception e) { // Catch potential exceptions during navigation
+                    Log.e("PlaylistAdapter", "Navigation failed for playlist: " + playlist.getId(), e);
+                    // Optionally show a toast to the user
+                    // Toast.makeText(itemView.getContext(), "Could not open playlist", Toast.LENGTH_SHORT).show();
                 }
             });
+            // --------------------------
         }
     }
 
@@ -120,7 +136,8 @@ public class PlaylistAdapter extends ListAdapter<Playlist, PlaylistAdapter.Playl
         public static final PlaylistDiffCallback INSTANCE = new PlaylistDiffCallback();
         @Override
         public boolean areItemsTheSame(@NonNull Playlist oldItem, @NonNull Playlist newItem) {
-            return oldItem.getId().equals(newItem.getId());
+            // Ensure IDs are not null before comparing
+            return oldItem.getId() != null && oldItem.getId().equals(newItem.getId());
         }
         @Override
         public boolean areContentsTheSame(@NonNull Playlist oldItem, @NonNull Playlist newItem) {

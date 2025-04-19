@@ -16,22 +16,36 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.soundslike.R;
-import com.example.soundslike.ui.adapters.GenreAdapter;
+// import com.example.soundslike.ui.adapters.GenreAdapter; // Remove GenreAdapter import
+import com.example.soundslike.ui.adapters.ArtistAdapter; // Import ArtistAdapter
 import com.example.soundslike.ui.adapters.PlaylistAdapter;
 import com.example.soundslike.ui.adapters.RecommendedSongAdapter;
+
+import java.util.Collections; // Import Collections
 
 public class HomeFragment extends Fragment {
 
     private HomeViewModel homeViewModel;
+
+    // View & Adapter References
     private RecyclerView playlistsRecyclerView;
-    private RecyclerView genresRecyclerView;
-    private RecyclerView recommendedRecyclerView;
     private PlaylistAdapter playlistAdapter;
-    private GenreAdapter genreAdapter;
+    private ProgressBar playlistsLoadingIndicator; // Keep if needed
+
+    // --- REMOVED Genre Views/Adapter ---
+    // private RecyclerView genresRecyclerView;
+    // private GenreAdapter genreAdapter;
+    // ---------------------------------
+
+    // --- ADDED Artist Views/Adapter ---
+    private RecyclerView artistsRecyclerView;
+    private ArtistAdapter artistAdapter;
+    private ProgressBar artistsLoadingIndicator; // Add if separate loading needed
+    // --------------------------------
+
+    private RecyclerView recommendedRecyclerView;
     private RecommendedSongAdapter recommendedSongAdapter;
-    // Add ProgressBars if you want separate loading indicators
-    private ProgressBar playlistsLoadingIndicator;
-    private ProgressBar songsLoadingIndicator;
+    private ProgressBar songsLoadingIndicator; // Keep if needed
 
 
     @Nullable
@@ -43,16 +57,19 @@ public class HomeFragment extends Fragment {
 
         // Find RecyclerViews
         playlistsRecyclerView = view.findViewById(R.id.playlists_recycler_view);
-        genresRecyclerView = view.findViewById(R.id.genres_recycler_view);
+        // genresRecyclerView = view.findViewById(R.id.genres_recycler_view); // Remove
+        artistsRecyclerView = view.findViewById(R.id.artists_recycler_view); // Find Artist RV
         recommendedRecyclerView = view.findViewById(R.id.recommended_recycler_view);
-        // Find ProgressBars (Add IDs to fragment_home.xml if needed)
-        // Example IDs:
+
+        // Find ProgressBars (Add IDs to fragment_home.xml if needed for artists)
         // playlistsLoadingIndicator = view.findViewById(R.id.loading_indicator_home_playlists);
+        // artistsLoadingIndicator = view.findViewById(R.id.loading_indicator_home_artists);
         // songsLoadingIndicator = view.findViewById(R.id.loading_indicator_home_songs);
 
 
         setupPlaylistsRecyclerView();
-        setupGenresRecyclerView();
+        // setupGenresRecyclerView(); // Remove
+        setupArtistsRecyclerView(); // Add setup for Artists
         setupRecommendedRecyclerView();
 
         return view;
@@ -70,16 +87,21 @@ public class HomeFragment extends Fragment {
         playlistsRecyclerView.setAdapter(playlistAdapter);
     }
 
-    private void setupGenresRecyclerView() {
-        genreAdapter = new GenreAdapter();
-        genresRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        genresRecyclerView.setAdapter(genreAdapter);
+    // --- REMOVED setupGenresRecyclerView ---
+    // private void setupGenresRecyclerView() { ... }
+    // -------------------------------------
+
+    // --- ADDED setupArtistsRecyclerView ---
+    private void setupArtistsRecyclerView() {
+        artistAdapter = new ArtistAdapter();
+        artistsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        artistsRecyclerView.setAdapter(artistAdapter);
     }
+    // ------------------------------------
 
     private void setupRecommendedRecyclerView() {
         recommendedSongAdapter = new RecommendedSongAdapter();
         recommendedRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        // Disable nested scrolling for the vertical RecyclerView inside NestedScrollView
         recommendedRecyclerView.setNestedScrollingEnabled(false);
         recommendedRecyclerView.setAdapter(recommendedSongAdapter);
     }
@@ -87,18 +109,8 @@ public class HomeFragment extends Fragment {
     private void observeViewModel() {
         // Observe Playlist Loading/Error/Data
         homeViewModel.isLoadingPlaylists().observe(getViewLifecycleOwner(), isLoading -> {
-            // Show/hide playlistsLoadingIndicator if you added one
             Log.d("HomeFragment", "Playlist loading state: " + isLoading);
-            if (playlistsLoadingIndicator != null) {
-                playlistsLoadingIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-            }
-        });
-
-        homeViewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
-            if (error != null && !error.isEmpty()) {
-                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
-                // Optionally clear error in VM
-            }
+            // Show/hide playlistsLoadingIndicator if you added one
         });
 
         homeViewModel.getPlaylists().observe(getViewLifecycleOwner(), playlists -> {
@@ -106,24 +118,34 @@ public class HomeFragment extends Fragment {
                 Log.d("HomeFragment", "Updating playlists adapter with " + playlists.size() + " items.");
                 playlistAdapter.submitList(playlists);
             } else {
-                playlistAdapter.submitList(java.util.Collections.emptyList());
+                playlistAdapter.submitList(Collections.emptyList());
             }
         });
 
-        // Observe Genres (still mock)
-        homeViewModel.getGenres().observe(getViewLifecycleOwner(), genres -> {
-            if (genres != null) {
-                genreAdapter.submitList(genres);
+        // --- REMOVED Genre Observation ---
+        // homeViewModel.getGenres().observe(getViewLifecycleOwner(), genres -> { ... });
+        // -------------------------------
+
+        // --- ADDED Artist Observation ---
+        homeViewModel.isLoadingArtists().observe(getViewLifecycleOwner(), isLoading -> {
+            Log.d("HomeFragment", "Artist loading state: " + isLoading);
+            // Show/hide artistsLoadingIndicator if you added one
+        });
+
+        homeViewModel.getArtists().observe(getViewLifecycleOwner(), artists -> {
+            if (artists != null) {
+                Log.d("HomeFragment", "Updating artists adapter with " + artists.size() + " items.");
+                artistAdapter.submitList(artists);
+            } else {
+                artistAdapter.submitList(Collections.emptyList());
             }
         });
+        // ------------------------------
 
         // Observe Recommended Songs Loading/Data
         homeViewModel.isLoadingSongs().observe(getViewLifecycleOwner(), isLoading -> {
-            // Show/hide songsLoadingIndicator if you added one
             Log.d("HomeFragment", "Songs loading state: " + isLoading);
-            if (songsLoadingIndicator != null) {
-                songsLoadingIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-            }
+            // Show/hide songsLoadingIndicator if you added one
         });
 
         homeViewModel.getRecommendedSongs().observe(getViewLifecycleOwner(), songs -> {
@@ -131,7 +153,18 @@ public class HomeFragment extends Fragment {
                 Log.d("HomeFragment", "Updating songs adapter with " + songs.size() + " items.");
                 recommendedSongAdapter.submitList(songs);
             } else {
-                recommendedSongAdapter.submitList(java.util.Collections.emptyList());
+                recommendedSongAdapter.submitList(Collections.emptyList());
+            }
+        });
+
+        // Observe General Error Message
+        homeViewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && !error.isEmpty()) {
+                // This might show errors for playlists, artists, or songs.
+                // Consider more specific error LiveData in ViewModel if needed.
+                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+                Log.e("HomeFragment", "Error from HomeViewModel: " + error);
+                // Optionally clear error in VM
             }
         });
     }
@@ -141,15 +174,22 @@ public class HomeFragment extends Fragment {
         super.onDestroyView();
         // Nullify views and adapters
         if (playlistsRecyclerView != null) playlistsRecyclerView.setAdapter(null);
-        if (genresRecyclerView != null) genresRecyclerView.setAdapter(null);
+        // if (genresRecyclerView != null) genresRecyclerView.setAdapter(null); // Remove
+        if (artistsRecyclerView != null) artistsRecyclerView.setAdapter(null); // Add Artist RV
         if (recommendedRecyclerView != null) recommendedRecyclerView.setAdapter(null);
+
         playlistsRecyclerView = null;
-        genresRecyclerView = null;
+        // genresRecyclerView = null; // Remove
+        artistsRecyclerView = null; // Add Artist RV
         recommendedRecyclerView = null;
+
         playlistAdapter = null;
-        genreAdapter = null;
+        // genreAdapter = null; // Remove
+        artistAdapter = null; // Add Artist adapter
         recommendedSongAdapter = null;
+
         playlistsLoadingIndicator = null;
+        artistsLoadingIndicator = null; // Add Artist indicator
         songsLoadingIndicator = null;
     }
 }

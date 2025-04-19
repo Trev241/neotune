@@ -9,10 +9,11 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.soundslike.R;
-import com.example.soundslike.data.models.Genre;
+import com.example.soundslike.data.models.Artist; // Import Artist
 import com.example.soundslike.data.models.Playlist;
 import com.example.soundslike.data.models.Song;
-import com.example.soundslike.data.repository.PlaylistRepository; // Import PlaylistRepository
+import com.example.soundslike.data.repository.ArtistRepository; // Import ArtistRepository
+import com.example.soundslike.data.repository.PlaylistRepository;
 import com.example.soundslike.data.repository.SongRepository;
 
 import java.util.ArrayList;
@@ -23,27 +24,37 @@ import java.util.Random;
 public class HomeViewModel extends ViewModel {
 
     private static final String TAG = "HomeViewModel";
-    // --- TEMPORARY HARDCODED TOKEN ---
-    private static final String TEMP_AUTH_TOKEN = "YOUR_HARDCODED_JWT_TOKEN_HERE"; // Replace
+    // --- TODO: Replace with actual token retrieval ---
+    private static final String TEMP_AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzQ1NjA4OTg3fQ.QwAVnGLKGd6jFJXLd3Qy8S-0SeSVzk4cap_PXOoWbX8"; // Replace
     // ---------------------------------
 
     // --- Repositories ---
     private final SongRepository songRepository;
-    private final PlaylistRepository playlistRepository; // Add playlist repository
+    private final PlaylistRepository playlistRepository;
+    private final ArtistRepository artistRepository; // Add Artist repository
 
     // --- LiveData for UI ---
-    // Playlists (Now fetched)
+    // Playlists
     private final MediatorLiveData<List<Playlist>> _playlists = new MediatorLiveData<>();
     public LiveData<List<Playlist>> getPlaylists() { return _playlists; }
     private final MutableLiveData<Boolean> _isLoadingPlaylists = new MutableLiveData<>(false);
     public LiveData<Boolean> isLoadingPlaylists() { return _isLoadingPlaylists; }
-    private LiveData<List<Playlist>> homePlaylistSource = null; // Source for home playlists
+    private LiveData<List<Playlist>> homePlaylistSource = null;
 
-    // Genres (Still mock)
-    private final MutableLiveData<List<Genre>> _genres = new MutableLiveData<>();
-    public LiveData<List<Genre>> getGenres() { return _genres; }
+    // --- REMOVED Genres ---
+    // private final MutableLiveData<List<Genre>> _genres = new MutableLiveData<>();
+    // public LiveData<List<Genre>> getGenres() { return _genres; }
+    // --------------------
 
-    // Recommended Songs (Fetched)
+    // --- ADDED Artists ---
+    private final MediatorLiveData<List<Artist>> _artists = new MediatorLiveData<>();
+    public LiveData<List<Artist>> getArtists() { return _artists; }
+    private final MutableLiveData<Boolean> _isLoadingArtists = new MutableLiveData<>(false);
+    public LiveData<Boolean> isLoadingArtists() { return _isLoadingArtists; }
+    private LiveData<List<Artist>> artistsSource = null;
+    // -------------------
+
+    // Recommended Songs
     private final MediatorLiveData<List<Song>> _recommendedSongs = new MediatorLiveData<>();
     public LiveData<List<Song>> getRecommendedSongs() { return _recommendedSongs; }
     private final MutableLiveData<Boolean> _isLoadingSongs = new MutableLiveData<>(false);
@@ -54,51 +65,79 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<String> _errorMessage = new MutableLiveData<>(null);
     public LiveData<String> getErrorMessage() { return _errorMessage; }
 
-    private final Random random = new Random(); // For random images (if needed elsewhere)
+    private final Random randomGenerator = new Random();
 
     public HomeViewModel() {
         songRepository = new SongRepository();
-        playlistRepository = new PlaylistRepository(); // Instantiate playlist repo
-        loadMockGenres(); // Load mock genres
-        loadRecommendedSongs(); // Load songs from API
-        fetchHomePlaylists(); // Load playlists from API
+        playlistRepository = new PlaylistRepository();
+        artistRepository = new ArtistRepository(); // Instantiate artist repo
+        // loadMockGenres(); // Remove mock genres call
+        fetchArtists(); // Fetch artists
+        loadRecommendedSongs(); // Load songs
+        fetchHomePlaylists(); // Load playlists
     }
 
-    private void loadRecommendedSongs() {
+    // --- Fetch Artists for Home Screen ---
+    private void fetchArtists() {
+        if (artistsSource != null) {
+            _artists.removeSource(artistsSource);
+        }
+        _isLoadingArtists.setValue(true);
+        _errorMessage.setValue(null);
+        Log.d(TAG, "Fetching artists for home screen...");
+
+        // Fetch a limited number for the home screen, e.g., 10
+        artistsSource = artistRepository.getArtists(0, 10);
+
+        _artists.addSource(artistsSource, artists -> {
+            _isLoadingArtists.setValue(false);
+            if (artists != null) {
+                Log.d(TAG, "Received " + artists.size() + " artists for home.");
+                _artists.setValue(artists);
+            } else {
+                Log.e(TAG, "Received null artist list for home from repository.");
+                _errorMessage.setValue("Failed to load artists.");
+                _artists.setValue(new ArrayList<>());
+            }
+        });
+    }
+    // -----------------------------------
+
+    public void loadRecommendedSongs() {
+        int randomSkip = randomGenerator.nextInt(10000) + 1;
+        int limit = 10;
+        Log.d(TAG, "Loading recommended songs starting from index (skip): " + randomSkip);
         if (songsSource != null) {
             _recommendedSongs.removeSource(songsSource);
         }
         _isLoadingSongs.setValue(true);
-        _errorMessage.setValue(null); // Clear previous errors
-        songsSource = songRepository.getSongs(0, 10); // Fetch first 10 songs
+        _errorMessage.setValue(null);
+        songsSource = songRepository.getSongs(randomSkip, limit);
         _recommendedSongs.addSource(songsSource, songs -> {
             _isLoadingSongs.setValue(false);
             if (songs != null) {
+                Log.d(TAG, "Successfully loaded " + songs.size() + " recommended songs.");
                 _recommendedSongs.setValue(songs);
             } else {
+                Log.e(TAG, "Failed to load recommended songs from repository.");
                 _errorMessage.setValue("Failed to load recommended songs.");
                 _recommendedSongs.setValue(new ArrayList<>());
             }
         });
     }
 
-    // --- Fetch Playlists for Home Screen ---
     private void fetchHomePlaylists() {
         if (homePlaylistSource != null) {
             _playlists.removeSource(homePlaylistSource);
         }
         _isLoadingPlaylists.setValue(true);
-        _errorMessage.setValue(null); // Clear previous errors
+        _errorMessage.setValue(null);
         Log.d(TAG, "Fetching home playlists from repository...");
-
-        // Fetch maybe fewer playlists for home screen, e.g., limit 5
         homePlaylistSource = playlistRepository.getUserPlaylists(TEMP_AUTH_TOKEN, 0, 5);
-
         _playlists.addSource(homePlaylistSource, playlists -> {
             _isLoadingPlaylists.setValue(false);
             if (playlists != null) {
                 Log.d(TAG, "Received " + playlists.size() + " playlists for home.");
-                // Image handling is now done in the adapter
                 _playlists.setValue(playlists);
             } else {
                 Log.e(TAG, "Received null playlist list for home from repository.");
@@ -107,16 +146,10 @@ public class HomeViewModel extends ViewModel {
             }
         });
     }
-    // --------------------------------------
 
-    // --- Load Mock Genres (Keep for now) ---
-    private void loadMockGenres() {
-        List<Genre> mockGenres = new ArrayList<>();
-        mockGenres.add(new Genre("g1", "Pop", R.drawable.ic_genre_placeholder));
-        mockGenres.add(new Genre("g2", "Rock", R.drawable.ic_genre_placeholder));
-        _genres.setValue(mockGenres);
-    }
-    // ------------------------------------
+    // --- REMOVED loadMockGenres ---
+    // private void loadMockGenres() { ... }
+    // ----------------------------
 
     @Override
     protected void onCleared() {
@@ -126,6 +159,11 @@ public class HomeViewModel extends ViewModel {
         if (homePlaylistSource != null) {
             _playlists.removeSource(homePlaylistSource);
         }
+        // --- Clean up artist source ---
+        if (artistsSource != null) {
+            _artists.removeSource(artistsSource);
+        }
+        // ----------------------------
         super.onCleared();
     }
 }

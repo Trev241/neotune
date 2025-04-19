@@ -17,6 +17,10 @@
         <action
             android:id="@+id/action_home_to_song_view"
             app:destination="@id/navigation_song_view" />
+        <!-- Action from Home to Artist Detail -->
+        <action
+            android:id="@+id/action_home_to_artist_detail"
+            app:destination="@id/navigation_artist_detail" />
     </fragment>
 
     <fragment
@@ -43,7 +47,18 @@
         android:id="@+id/navigation_library"
         android:name="com.example.soundslike.ui.library.LibraryFragment"
         android:label="@string/title_library"
-        tools:layout="@layout/fragment_library" />
+        tools:layout="@layout/fragment_library">
+        <action
+            android:id="@+id/action_library_to_playlist_detail"
+            app:destination="@id/navigation_playlist_detail" />
+        <action
+            android:id="@+id/action_library_to_song_view"
+            app:destination="@id/navigation_song_view" />
+        <!-- Action from Library to Artist Detail -->
+        <action
+            android:id="@+id/action_library_to_artist_detail"
+            app:destination="@id/navigation_artist_detail" />
+    </fragment>
 
 
     <!-- Detail Screens -->
@@ -52,12 +67,10 @@
         android:name="com.example.soundslike.ui.playlistdetail.PlaylistDetailFragment"
         android:label="Playlist"
         tools:layout="@layout/fragment_playlist_detail">
-        <!-- Argument to receive playlist ID -->
         <argument
             android:name="playlistId"
             android:defaultValue="default_playlist_id"
             app:argType="string" />
-
         <action
             android:id="@+id/action_playlist_detail_to_song_view"
             app:destination="@id/navigation_song_view" />
@@ -68,11 +81,26 @@
         android:name="com.example.soundslike.ui.song.SongViewFragment"
         android:label="Now Playing"
         tools:layout="@layout/fragment_song_view">
-        <!-- Argument to receive song ID -->
         <argument
             android:name="songId"
             android:defaultValue="default_song_id"
             app:argType="string" />
     </fragment>
+
+    <!-- **** NEW: Artist Detail Destination **** -->
+    <fragment
+        android:id="@+id/navigation_artist_detail"
+        android:name="com.example.soundslike.ui.artistdetail.ArtistDetailFragment"
+        android:label="Artist"
+        tools:layout="@layout/fragment_artist_detail">
+        <argument
+            android:name="artistId"
+            app:argType="string" />
+        <!-- TODO: Add action to Song View if needed later -->
+        <!-- <action
+            android:id="@+id/action_artist_detail_to_song_view"
+            app:destination="@id/navigation_song_view" /> -->
+    </fragment>
+    <!-- ************************************** -->
 
 </navigation>
