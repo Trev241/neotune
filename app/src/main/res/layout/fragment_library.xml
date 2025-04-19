@@ -13,13 +13,37 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/header_library"
-            android:layout_width="wrap_content"
+        <!-- Header and Logout Button -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="Your Library"
-            android:textAppearance="?attr/textAppearanceHeadline5" />
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/header_library"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Your Library"
+                android:textAppearance="?attr/textAppearanceHeadline5"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/button_logout"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- **** ADD LOGOUT BUTTON **** -->
+            <Button
+                android:id="@+id/button_logout"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Logout"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+            <!-- ************************* -->
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
 
         <!-- Liked Songs Section (Static Placeholder) -->
         <com.google.android.material.card.MaterialCardView
@@ -30,7 +54,7 @@
             android:clickable="true"
             android:focusable="true"
             app:cardElevation="2dp">
-            <!-- LinearLayout inside Card -->
+            <!-- ... LinearLayout inside Card ... -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -87,8 +111,6 @@
                 tools:visibility="visible" />
         </FrameLayout>
 
-        <!-- ****** NEW SECTION: Recommended Songs ****** -->
-
         <!-- Recommend Songs Button -->
         <Button
             android:id="@+id/button_recommend_songs"
@@ -98,7 +120,7 @@
             android:layout_gravity="start"
             android:layout_marginTop="16dp"
             android:text="Recommend Songs"
-            app:icon="@android:drawable/ic_menu_rotate" /> <!-- Example icon -->
+            app:icon="@android:drawable/ic_menu_rotate" />
 
 
         <!-- Recommended Songs Header -->
@@ -111,14 +133,13 @@
             android:text="Recommended For You"
             android:textAppearance="?attr/textAppearanceHeadline6"
             android:visibility="gone"
-            tools:visibility="visible"/> <!-- Initially hidden -->
+            tools:visibility="visible"/>
 
         <!-- FrameLayout for Recommended Songs List -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp">
-
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recommended_songs_recycler_view"
                 android:layout_width="match_parent"
@@ -128,8 +149,7 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:itemCount="5"
                 tools:listitem="@layout/song_card_long"
-                tools:visibility="visible"/> <!-- Initially hidden -->
-
+                tools:visibility="visible"/>
             <ProgressBar
                 android:id="@+id/loading_indicator_library_songs"
                 style="?android:attr/progressBarStyle"
@@ -139,12 +159,8 @@
                 android:layout_marginTop="32dp"
                 android:layout_marginBottom="32dp"
                 android:visibility="gone"
-                tools:visibility="gone"/> <!-- Initially hidden -->
-
+                tools:visibility="gone"/>
         </FrameLayout>
-
-        <!-- ******************************************* -->
-
 
         <!-- Artists Section Header -->
         <TextView
@@ -161,8 +177,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp">
-
-            <!-- RecyclerView for Artists -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/library_artists_recycler_view"
                 android:layout_width="match_parent"
@@ -174,8 +188,6 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:itemCount="5"
                 tools:listitem="@layout/artist_card" />
-
-            <!-- Loading Indicator for Artists -->
             <ProgressBar
                 android:id="@+id/loading_indicator_library_artists"
                 style="?android:attr/progressBarStyle"
@@ -197,6 +209,7 @@
             android:layout_marginBottom="8dp"
             android:text="Albums"
             android:textAppearance="?attr/textAppearanceHeadline6" />
+
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

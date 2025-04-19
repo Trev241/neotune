@@ -24,14 +24,14 @@ import java.util.Random;
 public class HomeViewModel extends ViewModel {
 
     private static final String TAG = "HomeViewModel";
-    // --- TODO: Replace with actual token retrieval ---
-    private static final String TEMP_AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzQ1NjA4OTg3fQ.QwAVnGLKGd6jFJXLd3Qy8S-0SeSVzk4cap_PXOoWbX8"; // Replace
-    // ---------------------------------
+    // --- REMOVED HARDCODED TOKEN ---
+    // private static final String TEMP_AUTH_TOKEN = "...";
+    // -----------------------------
 
     // --- Repositories ---
     private final SongRepository songRepository;
     private final PlaylistRepository playlistRepository;
-    private final ArtistRepository artistRepository; // Add Artist repository
+    private final ArtistRepository artistRepository;
 
     // --- LiveData for UI ---
     // Playlists
@@ -41,18 +41,12 @@ public class HomeViewModel extends ViewModel {
     public LiveData<Boolean> isLoadingPlaylists() { return _isLoadingPlaylists; }
     private LiveData<List<Playlist>> homePlaylistSource = null;
 
-    // --- REMOVED Genres ---
-    // private final MutableLiveData<List<Genre>> _genres = new MutableLiveData<>();
-    // public LiveData<List<Genre>> getGenres() { return _genres; }
-    // --------------------
-
-    // --- ADDED Artists ---
+    // Artists
     private final MediatorLiveData<List<Artist>> _artists = new MediatorLiveData<>();
     public LiveData<List<Artist>> getArtists() { return _artists; }
     private final MutableLiveData<Boolean> _isLoadingArtists = new MutableLiveData<>(false);
     public LiveData<Boolean> isLoadingArtists() { return _isLoadingArtists; }
     private LiveData<List<Artist>> artistsSource = null;
-    // -------------------
 
     // Recommended Songs
     private final MediatorLiveData<List<Song>> _recommendedSongs = new MediatorLiveData<>();
@@ -70,14 +64,12 @@ public class HomeViewModel extends ViewModel {
     public HomeViewModel() {
         songRepository = new SongRepository();
         playlistRepository = new PlaylistRepository();
-        artistRepository = new ArtistRepository(); // Instantiate artist repo
-        // loadMockGenres(); // Remove mock genres call
-        fetchArtists(); // Fetch artists
-        loadRecommendedSongs(); // Load songs
-        fetchHomePlaylists(); // Load playlists
+        artistRepository = new ArtistRepository();
+        fetchArtists();
+        loadRecommendedSongs();
+        fetchHomePlaylists();
     }
 
-    // --- Fetch Artists for Home Screen ---
     private void fetchArtists() {
         if (artistsSource != null) {
             _artists.removeSource(artistsSource);
@@ -85,10 +77,7 @@ public class HomeViewModel extends ViewModel {
         _isLoadingArtists.setValue(true);
         _errorMessage.setValue(null);
         Log.d(TAG, "Fetching artists for home screen...");
-
-        // Fetch a limited number for the home screen, e.g., 10
-        artistsSource = artistRepository.getArtists(0, 10);
-
+        artistsSource = artistRepository.getArtists(0, 10); // No token needed here
         _artists.addSource(artistsSource, artists -> {
             _isLoadingArtists.setValue(false);
             if (artists != null) {
@@ -101,7 +90,6 @@ public class HomeViewModel extends ViewModel {
             }
         });
     }
-    // -----------------------------------
 
     public void loadRecommendedSongs() {
         int randomSkip = randomGenerator.nextInt(10000) + 1;
@@ -112,7 +100,7 @@ public class HomeViewModel extends ViewModel {
         }
         _isLoadingSongs.setValue(true);
         _errorMessage.setValue(null);
-        songsSource = songRepository.getSongs(randomSkip, limit);
+        songsSource = songRepository.getSongs(randomSkip, limit); // No token needed here
         _recommendedSongs.addSource(songsSource, songs -> {
             _isLoadingSongs.setValue(false);
             if (songs != null) {
@@ -133,7 +121,7 @@ public class HomeViewModel extends ViewModel {
         _isLoadingPlaylists.setValue(true);
         _errorMessage.setValue(null);
         Log.d(TAG, "Fetching home playlists from repository...");
-        homePlaylistSource = playlistRepository.getUserPlaylists(TEMP_AUTH_TOKEN, 0, 5);
+        homePlaylistSource = playlistRepository.getUserPlaylists(0, 5); // No token needed here
         _playlists.addSource(homePlaylistSource, playlists -> {
             _isLoadingPlaylists.setValue(false);
             if (playlists != null) {
@@ -147,10 +135,6 @@ public class HomeViewModel extends ViewModel {
         });
     }
 
-    // --- REMOVED loadMockGenres ---
-    // private void loadMockGenres() { ... }
-    // ----------------------------
-
     @Override
     protected void onCleared() {
         if (songsSource != null) {
@@ -159,11 +143,9 @@ public class HomeViewModel extends ViewModel {
         if (homePlaylistSource != null) {
             _playlists.removeSource(homePlaylistSource);
         }
-        // --- Clean up artist source ---
         if (artistsSource != null) {
             _artists.removeSource(artistsSource);
         }
-        // ----------------------------
         super.onCleared();
     }
 }

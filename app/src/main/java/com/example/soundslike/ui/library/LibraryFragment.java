@@ -1,5 +1,6 @@
 package com.example.soundslike.ui.library;
 
+import android.content.Intent; // Import Intent
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,11 +21,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.soundslike.R;
-import com.example.soundslike.ui.adapters.ArtistAdapter; // Import ArtistAdapter
+import com.example.soundslike.ui.adapters.ArtistAdapter;
 import com.example.soundslike.ui.adapters.PlaylistAdapter;
 import com.example.soundslike.ui.adapters.RecommendedSongAdapter;
 import com.example.soundslike.ui.home.HomeViewModel;
+import com.example.soundslike.ui.login.LoginActivity; // Import LoginActivity
 import com.example.soundslike.ui.playlists.PlaylistsViewModel;
+import com.example.soundslike.util.TokenManager; // Import TokenManager
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.Collections;
@@ -34,26 +37,23 @@ public class LibraryFragment extends Fragment {
     private static final String TAG = "LibraryFragment";
 
     private PlaylistsViewModel playlistsViewModel;
-    private HomeViewModel homeViewModel; // Reused for artists & recommended songs
+    private HomeViewModel homeViewModel;
+    private TokenManager tokenManager; // Instance to manage the token
 
-    // Playlist Views
+    // Views...
     private RecyclerView playlistsRecyclerView;
     private PlaylistAdapter playlistAdapter;
     private ProgressBar playlistsLoadingIndicator;
     private MaterialCardView likedSongsCard;
-
-    // Recommended Song Views
     private Button recommendSongsButton;
     private TextView recommendedSongsHeader;
     private RecyclerView recommendedSongsRecyclerView;
     private RecommendedSongAdapter recommendedSongAdapter;
     private ProgressBar songsLoadingIndicator;
-
-    // --- ADDED: Artist Views ---
     private RecyclerView artistsRecyclerView;
     private ArtistAdapter artistAdapter;
     private ProgressBar artistsLoadingIndicator;
-    // ---------------------------
+    private Button logoutButton; // Logout Button reference
 
     @Nullable
     @Override
@@ -63,28 +63,24 @@ public class LibraryFragment extends Fragment {
         // Initialize ViewModels
         playlistsViewModel = new ViewModelProvider(requireActivity()).get(PlaylistsViewModel.class);
         homeViewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
+        tokenManager = new TokenManager(requireContext()); // Initialize TokenManager
 
-        // Find Playlist views
+        // Find Views...
         playlistsRecyclerView = view.findViewById(R.id.library_playlists_recycler_view);
         playlistsLoadingIndicator = view.findViewById(R.id.loading_indicator_library_playlists);
         likedSongsCard = view.findViewById(R.id.card_liked_songs);
-
-        // Find Recommended Song views
         recommendSongsButton = view.findViewById(R.id.button_recommend_songs);
         recommendedSongsHeader = view.findViewById(R.id.header_library_recommended);
         recommendedSongsRecyclerView = view.findViewById(R.id.recommended_songs_recycler_view);
         songsLoadingIndicator = view.findViewById(R.id.loading_indicator_library_songs);
-
-        // --- Find Artist Views ---
-        // Make sure these IDs exist in fragment_library.xml (add RV and ProgressBar if needed)
-        artistsRecyclerView = view.findViewById(R.id.library_artists_recycler_view); // Add this ID to your XML
-        artistsLoadingIndicator = view.findViewById(R.id.loading_indicator_library_artists); // Add this ID to your XML
-        // -------------------------
+        artistsRecyclerView = view.findViewById(R.id.library_artists_recycler_view);
+        artistsLoadingIndicator = view.findViewById(R.id.loading_indicator_library_artists);
+        logoutButton = view.findViewById(R.id.button_logout); // Find Logout Button
 
         setupPlaylistRecyclerView();
         setupRecommendedSongsRecyclerView();
-        setupArtistsRecyclerView(); // Setup Artist RV
-        setupClickListeners();
+        setupArtistsRecyclerView();
+        setupClickListeners(); // Setup listeners including logout
 
         return view;
     }
@@ -109,15 +105,11 @@ public class LibraryFragment extends Fragment {
         recommendedSongsRecyclerView.setNestedScrollingEnabled(false);
     }
 
-    // --- Setup for Artists RecyclerView ---
     private void setupArtistsRecyclerView() {
         artistAdapter = new ArtistAdapter();
-        // Use horizontal layout similar to Home screen
         artistsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         artistsRecyclerView.setAdapter(artistAdapter);
-        // No nested scrolling needed for horizontal RV
     }
-    // ------------------------------------
 
     private void setupClickListeners() {
         likedSongsCard.setOnClickListener(v -> {
@@ -130,6 +122,33 @@ public class LibraryFragment extends Fragment {
             recommendedSongsRecyclerView.setVisibility(View.VISIBLE);
             homeViewModel.loadRecommendedSongs();
         });
+
+        // --- Logout Button Listener Implementation ---
+        logoutButton.setOnClickListener(v -> {
+            Log.i(TAG, "Logout initiated.");
+
+            // 1. Clear the stored token
+            tokenManager.clearToken();
+            Log.d(TAG, "Auth token cleared.");
+
+            // 2. Navigate back to LoginActivity and clear the task stack
+            // Ensure context is not null before creating intent
+            if (getActivity() != null) {
+                Intent intent = new Intent(getActivity(), LoginActivity.class);
+                // These flags ensure the user cannot press 'back' to return to MainActivity
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                Log.d(TAG, "Navigating to LoginActivity.");
+
+                // 3. Finish the current MainActivity
+                getActivity().finish();
+                Log.d(TAG, "MainActivity finished.");
+            } else {
+                Log.e(TAG, "Cannot logout: Fragment not attached to an activity.");
+                Toast.makeText(getContext(), "Logout failed. Please try again.", Toast.LENGTH_SHORT).show();
+            }
+        });
+        // -------------------------------------------
     }
 
 
@@ -168,7 +187,7 @@ public class LibraryFragment extends Fragment {
         homeViewModel.getArtists().observe(getViewLifecycleOwner(), artists -> {
             if (artists != null) {
                 Log.d(TAG, "Updating library artists adapter with " + artists.size() + " items.");
-                artistAdapter.submitList(artists); // Submit to artist adapter
+                artistAdapter.submitList(artists);
                 if (artistsLoadingIndicator != null) {
                     artistsLoadingIndicator.setVisibility(View.GONE);
                 }
@@ -199,10 +218,8 @@ public class LibraryFragment extends Fragment {
             }
         });
 
-        // Observe General Error Message from HomeViewModel
         homeViewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
             if (error != null && !error.isEmpty()) {
-                // Check which loading indicator is visible to guess the source, or show generic error
                 boolean artistLoading = artistsLoadingIndicator != null && artistsLoadingIndicator.getVisibility() == View.VISIBLE;
                 boolean songLoading = songsLoadingIndicator != null && songsLoadingIndicator.getVisibility() == View.VISIBLE;
                 String prefix = artistLoading ? "Artist Error: " : (songLoading ? "Song Error: " : "Error: ");
@@ -215,27 +232,23 @@ public class LibraryFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Nullify Playlist views
+        // Nullify views...
         if (playlistsRecyclerView != null) playlistsRecyclerView.setAdapter(null);
         playlistsRecyclerView = null;
         playlistsLoadingIndicator = null;
         likedSongsCard = null;
         playlistAdapter = null;
-
-        // Nullify Recommended Song views
         if (recommendedSongsRecyclerView != null) recommendedSongsRecyclerView.setAdapter(null);
         recommendSongsButton = null;
         recommendedSongsHeader = null;
         recommendedSongsRecyclerView = null;
         songsLoadingIndicator = null;
         recommendedSongAdapter = null;
-
-        // --- Nullify Artist Views ---
         if (artistsRecyclerView != null) artistsRecyclerView.setAdapter(null);
         artistsRecyclerView = null;
         artistsLoadingIndicator = null;
         artistAdapter = null;
-        // --------------------------
+        logoutButton = null; // Nullify logout button
 
         Log.d(TAG, "onDestroyView called");
     }

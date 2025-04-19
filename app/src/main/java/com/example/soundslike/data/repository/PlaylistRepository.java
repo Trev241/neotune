@@ -54,13 +54,12 @@ public class PlaylistRepository {
     }
 
     // --- NEW: Get User Playlists ---
-    public LiveData<List<Playlist>> getUserPlaylists(String token, int skip, int limit) {
+    public LiveData<List<Playlist>> getUserPlaylists(int skip, int limit) {
         MutableLiveData<List<Playlist>> data = new MutableLiveData<>();
         // Add "Bearer " prefix to the token
-        String authToken = "Bearer " + token;
         Log.d(TAG, "Fetching user playlists...");
 
-        apiService.getUserPlaylists(authToken, skip, limit).enqueue(new Callback<List<Playlist>>() {
+        apiService.getUserPlaylists(skip, limit).enqueue(new Callback<List<Playlist>>() {
             @Override
             public void onResponse(@NonNull Call<List<Playlist>> call, @NonNull Response<List<Playlist>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -82,13 +81,12 @@ public class PlaylistRepository {
 
     // --- NEW: Create Playlist ---
     // Returns LiveData containing the newly created Playlist on success, null on failure
-    public LiveData<Playlist> createPlaylist(String token, String playlistName) {
+    public LiveData<Playlist> createPlaylist(String playlistName) {
         MutableLiveData<Playlist> result = new MutableLiveData<>();
-        String authToken = "Bearer " + token;
         PlaylistCreateRequest requestBody = new PlaylistCreateRequest(playlistName);
         Log.d(TAG, "Attempting to create playlist: " + playlistName);
 
-        apiService.createPlaylist(authToken, requestBody).enqueue(new Callback<Playlist>() {
+        apiService.createPlaylist(requestBody).enqueue(new Callback<Playlist>() {
             @Override
             public void onResponse(@NonNull Call<Playlist> call, @NonNull Response<Playlist> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -110,13 +108,12 @@ public class PlaylistRepository {
 
     // --- NEW: Add Song to Playlist ---
     // Returns LiveData<Boolean> indicating success (true) or failure (false)
-    public LiveData<Boolean> addSongToPlaylist(String token, String playlistId, String songIdToAdd, @Nullable Integer order) {
+    public LiveData<Boolean> addSongToPlaylist(String playlistId, String songIdToAdd, @Nullable Integer order) {
         MutableLiveData<Boolean> success = new MutableLiveData<>();
-        String authToken = "Bearer " + token;
         AddSongRequest requestBody = new AddSongRequest(songIdToAdd, order);
         Log.d(TAG, "Attempting to add song " + songIdToAdd + " to playlist " + playlistId);
 
-        apiService.addSongToPlaylist(authToken, playlistId, requestBody).enqueue(new Callback<Void>() {
+        apiService.addSongToPlaylist(playlistId, requestBody).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 // Check for 2xx status codes (like 204 No Content or 200 OK)
