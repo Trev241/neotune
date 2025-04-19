@@ -6,19 +6,32 @@
     android:layout_height="match_parent"
     tools:context=".ui.playlists.PlaylistsFragment">
 
-    <!-- Make sure the ID matches what's used in PlaylistsFragment.java -->
+    <!-- RecyclerView for Playlists -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/playlists_recycler_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="8dp"
         android:clipToPadding="false"
+        android:padding="8dp"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="2"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/song_card" /> <!-- Using song_card, adjust if you create a specific playlist card -->
+        app:spanCount="2"
+        tools:listitem="@layout/song_card" />
+
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/loading_indicator_playlists_fragment"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

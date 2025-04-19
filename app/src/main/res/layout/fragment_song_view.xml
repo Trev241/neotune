@@ -78,15 +78,15 @@
                 android:layout_marginTop="24dp"
                 android:scaleType="centerCrop"
                 tools:src="@drawable/album_art_get_lucky"
-            android:src="@drawable/ic_genre_placeholder"
-            app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHeight_percent="0.4"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.App.CircleImageView"
-            app:strokeColor="#888888"
-            app:strokeWidth="1dp" />
+                android:src="@drawable/ic_genre_placeholder"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHeight_percent="0.4"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.App.CircleImageView"
+                app:strokeColor="#888888"
+                app:strokeWidth="1dp" />
 
 
             <!-- Song Title -->
@@ -242,6 +242,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <!-- Adjust constraints for remaining buttons -->
         <ImageButton
             android:id="@+id/button_like"
             android:layout_width="0dp"
@@ -251,7 +252,7 @@
             android:padding="16dp"
             android:src="@drawable/ic_heart"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/button_queue"
+            app:layout_constraintEnd_toStartOf="@+id/guideline_center"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/icon_tint_medium_dark" />
@@ -265,37 +266,18 @@
             android:padding="16dp"
             android:src="@drawable/ic_queue"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/button_shuffle"
-            app:layout_constraintStart_toEndOf="@+id/button_like"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/icon_tint_medium_dark" />
-
-        <ImageButton
-            android:id="@+id/button_shuffle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/cd_shuffle"
-            android:padding="16dp"
-            android:src="@drawable/ic_shuffle"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/button_queue"
+            app:layout_constraintStart_toEndOf="@+id/guideline_center"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/icon_tint_medium_dark" />
 
-        <!-- Small indicator dots (Optional visual flair) -->
-        <ImageView
-            android:id="@+id/indicator_dots"
+        <!-- Guideline to help distribute space -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_dots_indicator"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@id/button_queue"
-            app:layout_constraintStart_toStartOf="@id/button_queue"
-            app:tint="@color/icon_tint_medium_dark_faded" /> <!-- Added null content description -->
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

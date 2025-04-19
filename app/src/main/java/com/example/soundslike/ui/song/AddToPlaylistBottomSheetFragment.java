@@ -2,13 +2,17 @@ package com.example.soundslike.ui.song;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.graphics.Color; // Import Color
+import android.graphics.drawable.ColorDrawable; // Import ColorDrawable
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window; // Import Window
 import android.widget.EditText;
+import android.widget.FrameLayout; // Import FrameLayout
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -78,23 +82,33 @@ public class AddToPlaylistBottomSheetFragment extends BottomSheetDialogFragment 
         setupListeners();
         observeViewModel();
 
-        // --- Trigger fetching user playlists when sheet opens ---
         playlistsViewModel.fetchUserPlaylists();
-        // ------------------------------------------------------
     }
 
     @NonNull @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         BottomSheetDialog dialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
+
+        // --- Attempt to remove potential spacing ---
+        Window window = dialog.getWindow();
+        if (window != null) {
+            // Make window background transparent, letting the layout background show
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            // Optional: Adjust flags if needed, but often background is enough
+            // window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        // -----------------------------------------
+
         dialog.setOnShowListener(d -> {
             BottomSheetDialog bottomSheetDialog = (BottomSheetDialog) d;
-            View bottomSheetInternal = bottomSheetDialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            FrameLayout bottomSheetInternal = bottomSheetDialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (bottomSheetInternal != null) {
                 BottomSheetBehavior.from(bottomSheetInternal).setState(BottomSheetBehavior.STATE_EXPANDED);
             }
         });
         return dialog;
     }
+
 
     private void setupRecyclerView() {
         adapter = new PlaylistSelectionAdapter(this);
@@ -107,25 +121,19 @@ public class AddToPlaylistBottomSheetFragment extends BottomSheetDialogFragment 
     }
 
     private void observeViewModel() {
-        // Observe loading state
         playlistsViewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
             loadingIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-            // Optionally disable buttons while loading
             createPlaylistButton.setEnabled(!isLoading);
-            playlistRecyclerView.setEnabled(!isLoading); // Might not visually disable clicks
+            playlistRecyclerView.setEnabled(!isLoading);
         });
 
-        // Observe error messages
         playlistsViewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
             if (error != null && !error.isEmpty()) {
                 Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
-                // Optionally clear error in ViewModel: playlistsViewModel.clearErrorMessage();
             }
         });
 
-        // Observe the actual playlist list
         playlistsViewModel.getUserPlaylists().observe(getViewLifecycleOwner(), playlists -> {
-            // Loading is handled by the isLoading LiveData now
             if (playlists != null) {
                 Log.d(TAG, "Updating playlist list in sheet: " + playlists.size() + " items");
                 adapter.submitList(playlists);
@@ -134,11 +142,10 @@ public class AddToPlaylistBottomSheetFragment extends BottomSheetDialogFragment 
             }
         });
 
-        // Observe action feedback messages
         playlistsViewModel.getActionFeedback().observe(getViewLifecycleOwner(), message -> {
             if (message != null && !message.isEmpty()) {
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-                playlistsViewModel.clearActionFeedback(); // Clear message after showing
+                playlistsViewModel.clearActionFeedback();
             }
         });
     }
@@ -147,11 +154,8 @@ public class AddToPlaylistBottomSheetFragment extends BottomSheetDialogFragment 
     public void onPlaylistSelected(Playlist playlist) {
         Log.d(TAG, "Selected playlist: " + playlist.getName() + " (ID: " + playlist.getId() + ")");
         Log.d(TAG, "Song to add: " + songIdToAdd);
-
-        // Call ViewModel to handle adding the song via API
         playlistsViewModel.addSongToPlaylist(playlist.getId(), playlist.getName(), songIdToAdd);
-
-        dismiss(); // Close the bottom sheet
+        dismiss();
     }
 
     private void showCreatePlaylistDialog() {
@@ -164,21 +168,18 @@ public class AddToPlaylistBottomSheetFragment extends BottomSheetDialogFragment 
         int paddingDp = 16;
         float density = getResources().getDisplayMetrics().density;
         int paddingPixel = (int)(paddingDp * density);
-        // Create a container for the EditText to add padding easily
-        android.widget.FrameLayout container = new android.widget.FrameLayout(requireContext());
-        android.widget.FrameLayout.LayoutParams params = new  android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        FrameLayout container = new FrameLayout(requireContext());
+        FrameLayout.LayoutParams params = new  FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.leftMargin = paddingPixel;
         params.rightMargin = paddingPixel;
         input.setLayoutParams(params);
         container.addView(input);
-        builder.setView(container); // Set the container as the view
+        builder.setView(container);
 
         builder.setPositiveButton("Create & Add Song", (dialog, which) -> {
             String playlistName = input.getText().toString().trim();
             if (!playlistName.isEmpty() && songIdToAdd != null) {
-                // Call ViewModel to handle creation and adding via API
                 playlistsViewModel.createPlaylistAndAddSong(playlistName, songIdToAdd);
-                // Don't dismiss here, let the feedback LiveData handle UI changes or dismissal
             } else if (playlistName.isEmpty()) {
                 Toast.makeText(getContext(), "Playlist name cannot be empty", Toast.LENGTH_SHORT).show();
             } else {
